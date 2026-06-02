@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>808 Classic | Official Tournament Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="808 Classic primary navigation">
+      <a class="brand" href="#overview" aria-label="808 Classic home">
+        <span class="brand-mark">808</span>
+        <span>
+          <strong>808 Classic</strong>
+          <small>Official Tournament Operations</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#travel">Travel</a>
+        <a href="#lodging">Lodging</a>
+        <a href="#courses">Courses</a>
+        <a href="#events">Events</a>
+        <a href="#attendees">Field</a>
+        <a href="#sidequests">Side Quests</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="overview" class="hero" aria-label="Tournament overview">
+        <img class="hero-image" src="./assets/orange-jacket-hero.png" alt="Orange golf jacket overlooking a tournament green" />
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <p class="kicker">Annual invitational. Questionable handicaps. Unquestioned pageantry.</p>
+          <h1>The 808 Classic</h1>
+          <div class="hero-meta" aria-label="Trip summary">
+            <span>Orange Jacket Week</span>
+            <span>Seattle · Jul 16-19</span>
+            <span>7 confirmed golfers</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ticker" aria-label="Official leaderboard and field links">
+        <div class="ticker-heading">
+          <span>Live Field Board</span>
+          <strong>The Field</strong>
+        </div>
+        <div id="leaderboard" class="leaderboard"></div>
+      </section>
+
+      <section id="travel" class="section logistics">
+        <div class="section-head">
+          <p class="kicker dark">Travel Desk</p>
+          <h2>Arrivals & Departures</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="travelRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="lodging" class="section lodging">
+        <div class="section-head">
+          <p class="kicker dark">Clubhouse Bureau</p>
+          <h2>Where We Are Staying</h2>
+        </div>
+        <div id="lodgingGrid" class="lodging-grid"></div>
+      </section>
+
+      <section id="courses" class="section courses">
+        <div class="section-head">
+          <p class="kicker dark">Competitive Schedule</p>
+          <h2>Course Candidate Board</h2>
+        </div>
+        <div class="course-tabs" role="tablist" aria-label="Course schedule">
+          <button class="tab active" type="button" data-course="0" role="tab" aria-selected="true">Thursday</button>
+          <button class="tab" type="button" data-course="1" role="tab" aria-selected="false">Ferry</button>
+          <button class="tab" type="button" data-course="2" role="tab" aria-selected="false">Splurge</button>
+          <button class="tab" type="button" data-course="3" role="tab" aria-selected="false">Backups</button>
+        </div>
+        <div id="coursePanel" class="course-panel"></div>
+      </section>
+
+      <section id="events" class="section events">
+        <div class="section-head">
+          <p class="kicker dark">Official Itinerary</p>
+          <h2>Events & Logistics</h2>
+        </div>
+        <div id="eventList" class="event-list"></div>
+      </section>
+
+      <section id="attendees" class="section attendees">
+        <div class="section-head split">
+          <div>
+            <p class="kicker dark">Player Relations</p>
+            <h2>The Field</h2>
+          </div>
+          <label class="search">
+            <span>Search</span>
+            <input id="playerSearch" type="search" placeholder="Name, skill, allegation..." />
+          </label>
+        </div>
+        <div id="attendeeGrid" class="attendee-grid"></div>
+      </section>
+
+      <section id="sidequests" class="section sidequests">
+        <div class="section-head">
+          <p class="kicker dark">Extended Universe</p>
+          <h2>Guests & Side Quests</h2>
+        </div>
+        <div id="guestsGrid" class="guest-grid"></div>
+        <div class="section-head subhead">
+          <p class="kicker dark">Optional Nature Compliance</p>
+          <h2>Outdoorsy Ideas</h2>
+        </div>
+        <div id="outdoorsGrid" class="guest-grid"></div>
+      </section>
+    </main>
+
+    <dialog id="bioDialog" class="bio-dialog">
+      <button class="dialog-close" type="button" aria-label="Close player dossier">×</button>
+      <div id="bioDialogContent"></div>
+    </dialog>
+
+    <footer class="footer">
+      <strong>808 Classic Tournament Committee</strong>
+      <span>All rulings final unless loudly disputed in the group chat.</span>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
