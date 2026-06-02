@@ -8,11 +8,10 @@ const trip = {
       handicap: "Theoretical",
       arrival: "Thu 7/16, sometime",
       departure: "Staying into the next week",
-      profile: "https://www.linkedin.com/in/liam-hession-22178817/",
       headshot: "./assets/optimized/people/headshots/liam-headshot.webp",
       action: "./assets/people/stylized/action/liam-action.jpg",
-      bio: "Flying in for the full Seattle residency and eligible for every official function, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and the broader Seattle cameo economy.",
-      strengths: ["Guest diplomacy", "Extended stay", "Local cameos"],
+      bio: "Flying in for the full Seattle residency and eligible for every official function, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and any non-golf social programming Seattle can provide.",
+      strengths: ["Guest diplomacy", "Extended stay", "Social programming"],
       weakness: "Golf, including the parts before and after contact",
       allegations: "May be more excited about side characters than the founding membership",
     },
@@ -24,7 +23,6 @@ const trip = {
       handicap: "Favorite, pending collapse",
       arrival: "Thu 7/16, 8:26 AM · AS 491",
       departure: "Sun 7/19, 8:47 PM",
-      profile: "https://www.linkedin.com/in/johnrjacobs1",
       headshot: "./assets/optimized/people/headshots/john-headshot.webp",
       action: "./assets/people/stylized/action/john-action.jpg",
       bio: "The odds-on favorite only because Bill is not making the trip. Plays the most, cares too much about etiquette, and has already spent enough time on this website to make everyone uncomfortable.",
@@ -40,7 +38,6 @@ const trip = {
       handicap: "Incumbent privilege",
       arrival: "Thu 7/16, noon",
       departure: "Sun 7/19, 10:52 AM",
-      profile: "https://www.linkedin.com/in/charles-vokes-914a8168/",
       headshot: "./assets/optimized/people/headshots/chuck-headshot.webp",
       action: "./assets/people/stylized/action/chuck-action.jpg",
       bio: "The reigning Orange Jacket holder and host of the inaugural Chicago edition. His victory remains legally valid despite a scoring environment best described as ceremonial.",
@@ -56,11 +53,10 @@ const trip = {
       handicap: "Grip-dependent",
       arrival: "Thu 7/16, noonish",
       departure: "Sun 7/19, like 9:30",
-      profile: "https://www.linkedin.com/in/jake-dam-0741a08b/",
       headshot: "./assets/optimized/people/headshots/jakedam-headshot.webp",
       action: "./assets/people/stylized/action/jakedam-action.jpg",
-      bio: "Known formally as The Natural and informally as the biggest BN any of us know. Believes the entire golf project may be solved through one decisive grip adjustment.",
-      strengths: ["Natural aura", "Grip theory", "BN credentials"],
+      bio: "Known formally as The Natural, with the quiet confidence of someone who believes every swing issue left over from baseball can be solved by strengthening his grip.",
+      strengths: ["Natural aura", "Grip theory", "Baseball damage control"],
       weakness: "Any problem not solved by strengthening his grip",
       allegations: "May diagnose every miss before the ball has stopped moving",
     },
@@ -72,7 +68,6 @@ const trip = {
       handicap: "Introductory",
       arrival: "TBD",
       departure: "TBD",
-      profile: "https://www.linkedin.com/in/arjun-nayini-2b677117/",
       headshot: "./assets/optimized/people/headshots/arjun-headshot.webp",
       action: "./assets/people/stylized/action/arjun-action.jpg",
       bio: "A central IMSA bloc member with limited golf exposure and a Saturday conflict of unusually high cultural legitimacy: The Odyssey, booked months in advance by his wife.",
@@ -88,7 +83,6 @@ const trip = {
       handicap: "Motivated challenger",
       arrival: "Thu 7/16, 2:30 PM · UA2744",
       departure: "Sun 7/19, 10:29 AM · UA1482",
-      profile: "https://www.linkedin.com/in/eprodrig",
       headshot: "./assets/optimized/people/headshots/evan-headshot.webp",
       action: "./assets/people/stylized/action/evan-action.jpg",
       bio: "Arrives with flight numbers, competitive intent, and a long memory of being told in college that a natural swing cannot be reverse-engineered in adulthood.",
@@ -104,7 +98,6 @@ const trip = {
       handicap: "Declining asset",
       arrival: "Thu 7/16, likely noon",
       departure: "Sun 7/19, TBD",
-      profile: "https://www.linkedin.com/in/david-weizeorick-asa-maaa-b9701218a",
       headshot: "./assets/optimized/people/headshots/david-headshot.webp",
       action: "./assets/people/stylized/action/david-action.jpg",
       bio: "Carries nonzero risk of missing the trip entirely, based on a documented history of missed flights and a golf swing that has somehow depreciated over time.",
@@ -218,7 +211,7 @@ const trip = {
     },
     {
       name: "Japanese Guy",
-      role: "Potential Seattle Cameo",
+      role: "Potential Seattle Guest",
       image: "./assets/optimized/people/guests/japanese-man-620.webp",
       imageFit: "contain",
       detail: "Liam met a guy in Japan who is now in Seattle. This is exactly the kind of note an official tournament site should preserve forever.",
@@ -227,19 +220,7 @@ const trip = {
       name: "Josh, Kyla, Elora, and TBD",
       role: "Family Contingent",
       image: "./assets/optimized/people/guests/elora-josh-kyla-900.webp",
-      detail: "John's wife's brother Josh and family. Elora is four; another niece will exist by trip time, with naming rights still pending.",
-    },
-  ],
-  outdoors: [
-    {
-      name: "Discovery Park",
-      status: "Top contender",
-      detail: "Great, easily accessible, and roughly 22 minutes away. Offers Puget Sound views, meadows, beaches, forest, and enough wholesomeness to offset one round of pace-of-play arguments.",
-    },
-    {
-      name: "Vashon Island",
-      status: "More work, more wild",
-      detail: "A full island-side quest with charming dining options and lighthouse/beach energy. High upside, higher logistics friction.",
+      detail: "John's brother-in-law Josh and family. Elora is four; another niece will exist by trip time, with naming rights still pending.",
     },
   ],
 };
@@ -253,7 +234,6 @@ const attendeeGrid = document.querySelector("#attendeeGrid");
 const bioDialog = document.querySelector("#bioDialog");
 const bioDialogContent = document.querySelector("#bioDialogContent");
 const guestsGrid = document.querySelector("#guestsGrid");
-const outdoorsGrid = document.querySelector("#outdoorsGrid");
 const navLinks = [...document.querySelectorAll(".nav-links a")];
 const navSections = navLinks
   .map((link) => document.querySelector(link.getAttribute("href")))
@@ -433,20 +413,6 @@ function renderGuests() {
     .join("");
 }
 
-function renderOutdoors() {
-  outdoorsGrid.innerHTML = trip.outdoors
-    .map(
-      (item) => `
-        <article class="guest-card">
-          <p class="kicker dark">${item.status}</p>
-          <h3>${item.name}</h3>
-          <p>${item.detail}</p>
-        </article>
-      `,
-    )
-    .join("");
-}
-
 function openBio(index) {
   const player = trip.players[index];
   bioDialogContent.innerHTML = `
@@ -459,7 +425,6 @@ function openBio(index) {
     </div>
     <div class="dialog-body">
       <p>${player.bio}</p>
-      <a class="dialog-profile" href="${player.profile}" target="_blank" rel="noreferrer">Open LinkedIn profile</a>
       <div class="stat-grid">
         <div><span>Handicap</span><strong>${player.handicap}</strong></div>
         <div><span>Weakness</span><strong>${player.weakness}</strong></div>
@@ -566,5 +531,4 @@ renderCourse();
 renderEvents();
 renderAttendees();
 renderGuests();
-renderOutdoors();
 updateActiveNav();
