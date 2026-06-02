@@ -4,120 +4,120 @@ const trip = {
       name: "Liam Hession",
       rank: 1,
       score: "E",
-      title: "International Liaison",
-      handicap: "Customs pending",
+      title: "The Social Golfer",
+      handicap: "Theoretical",
       arrival: "Thu 7/16, sometime",
       departure: "Staying into the next week",
       profile: "https://www.linkedin.com/in/liam-hession-22178817/",
-      headshot: "./assets/people/stylized/headshots/liam-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/liam-headshot.webp",
       action: "./assets/people/stylized/action/liam-action.jpg",
-      bio: "Flying in for the full Seattle residency and therefore eligible for both the Orange Jacket and excessive local recommendations. Has the rare scheduling confidence of someone not leaving Sunday night.",
-      strengths: ["Extended stay", "IMSA caucus", "Local diplomacy"],
-      weakness: "A departure date with legal clarity",
-      allegations: "May introduce an unnamed Seattle contact from Japan",
+      bio: "Flying in for the full Seattle residency and eligible for every official function, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and the broader Seattle cameo economy.",
+      strengths: ["Guest diplomacy", "Extended stay", "Local cameos"],
+      weakness: "Golf, including the parts before and after contact",
+      allegations: "May be more excited about side characters than the founding membership",
     },
     {
       name: "John Jacobs",
       rank: 2,
       score: "+1",
-      title: "Tournament Founder",
-      handicap: "Invented annually",
+      title: "The Favorite",
+      handicap: "Favorite, pending collapse",
       arrival: "Thu 7/16, 8:26 AM · AS 491",
       departure: "Sun 7/19, 8:47 PM",
       profile: "https://www.linkedin.com/in/johnrjacobs1",
-      headshot: "./assets/people/stylized/headshots/john-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/john-headshot.webp",
       action: "./assets/people/stylized/action/john-action.jpg",
-      bio: "Commissioner, webmaster, and likely author of several favorable interpretations of local rules. Arrives early enough to claim this was all operationally necessary.",
-      strengths: ["Logistics", "Receipts", "Ceremony"],
-      weakness: "Any shot witnessed by peers",
-      allegations: "Spent time building this",
+      bio: "The odds-on favorite only because Bill is not making the trip. Plays the most, cares too much about etiquette, and has already spent enough time on this website to make everyone uncomfortable.",
+      strengths: ["Repetition", "Etiquette enforcement", "Website budget overrun"],
+      weakness: "Pressure, consensus, and being wrong quietly",
+      allegations: "Will double down on ants, reptiles, rulings, or anything else with insufficient evidence",
     },
     {
       name: "Charles Vokes",
       rank: 3,
       score: "+3",
-      title: "Noon Arrival Committee",
-      handicap: "Chuck-adjusted",
+      title: "The Defending Champion",
+      handicap: "Incumbent privilege",
       arrival: "Thu 7/16, noon",
       departure: "Sun 7/19, 10:52 AM",
       profile: "https://www.linkedin.com/in/charles-vokes-914a8168/",
-      headshot: "./assets/people/stylized/headshots/chuck-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/chuck-headshot.webp",
       action: "./assets/people/stylized/action/chuck-action.jpg",
-      bio: "Listed formally as Charles Vokes and operationally as Chuck, which is exactly the type of ambiguity this tournament deserves. Sunday departure is early enough to avoid several rulings.",
-      strengths: ["Concise schedule", "Alias management", "Morning exits"],
-      weakness: "Full-name bureaucracy",
-      allegations: "Could leave before the jacket speech gets weird",
+      bio: "The reigning Orange Jacket holder and host of the inaugural Chicago edition. His victory remains legally valid despite a scoring environment best described as ceremonial.",
+      strengths: ["Defending champion", "House-host advantage", "Kyle-based instruction"],
+      weakness: "Any audit of the 2025 scoring methodology",
+      allegations: "Won by hosting, fit, and the absence of a reliable scoring system",
     },
     {
       name: "Jake Dam",
       rank: 4,
       score: "+4",
-      title: "Noonish Operations",
-      handicap: "Noonish",
+      title: "The Natural",
+      handicap: "Grip-dependent",
       arrival: "Thu 7/16, noonish",
       departure: "Sun 7/19, like 9:30",
       profile: "https://www.linkedin.com/in/jake-dam-0741a08b/",
-      headshot: "./assets/people/stylized/headshots/jakedam-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/jakedam-headshot.webp",
       action: "./assets/people/stylized/action/jakedam-action.jpg",
-      bio: "The official keeper of approximate time. His logistics language contains enough softness to survive travel delays, tee sheets, and brunch negotiations.",
-      strengths: ["Flex windows", "Casual precision", "Group chat ambiguity"],
-      weakness: "Specific clocks",
-      allegations: "Filed all times in vibes, not minutes",
+      bio: "Known formally as The Natural and informally as the biggest BN any of us know. Believes the entire golf project may be solved through one decisive grip adjustment.",
+      strengths: ["Natural aura", "Grip theory", "BN credentials"],
+      weakness: "Any problem not solved by strengthening his grip",
+      allegations: "May diagnose every miss before the ball has stopped moving",
     },
     {
       name: "Arjun Nayini",
       rank: 5,
       score: "+5",
-      title: "TBD Desk",
-      handicap: "Pending audit",
+      title: "The Matinee Threat",
+      handicap: "Introductory",
       arrival: "TBD",
       departure: "TBD",
       profile: "https://www.linkedin.com/in/arjun-nayini-2b677117/",
-      headshot: "./assets/people/stylized/headshots/arjun-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/arjun-headshot.webp",
       action: "./assets/people/stylized/action/arjun-action.jpg",
-      bio: "A central member of the IMSA bloc whose travel details remain classified. The committee respects this strategic opacity and fears what it may imply for match play.",
-      strengths: ["Mystery", "IMSA caucus", "Late-breaking leverage"],
-      weakness: "Published flight data",
-      allegations: "May be waiting for the optimal reveal",
+      bio: "A central IMSA bloc member with limited golf exposure and a Saturday conflict of unusually high cultural legitimacy: The Odyssey, booked months in advance by his wife.",
+      strengths: ["Strategic absence", "Cultural programming", "Low expectations"],
+      weakness: "Golf knowledge, broadly construed",
+      allegations: "May choose Homeric endurance over Saturday match play",
     },
     {
       name: "Evan Rodrigues",
       rank: 6,
       score: "+6",
-      title: "United Desk",
-      handicap: "UA confirmed",
+      title: "The Challenger",
+      handicap: "Motivated challenger",
       arrival: "Thu 7/16, 2:30 PM · UA2744",
       departure: "Sun 7/19, 10:29 AM · UA1482",
       profile: "https://www.linkedin.com/in/eprodrig",
-      headshot: "./assets/people/stylized/headshots/evan-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/evan-headshot.webp",
       action: "./assets/people/stylized/action/evan-action.jpg",
-      bio: "Arrives with actual flight numbers, a powerful act of maturity that will be remembered when the rest of the field says things like noonish.",
-      strengths: ["Documentation", "IMSA caucus", "Flight numbers"],
-      weakness: "Sunday morning escape routes",
-      allegations: "Submitted paperwork too competently",
+      bio: "Arrives with flight numbers, competitive intent, and a long memory of being told in college that a natural swing cannot be reverse-engineered in adulthood.",
+      strengths: ["Competitive resentment", "Flight numbers", "John rivalry"],
+      weakness: "Athleticism, in the same general way as everyone else",
+      allegations: "Has been developing a chip on his shoulder since approximately 2011",
     },
     {
       name: "David Weizeorick",
       rank: 7,
       score: "+8",
-      title: "Actuarial Risk Office",
-      handicap: "Modeled, not disclosed",
+      title: "The Flight Risk",
+      handicap: "Declining asset",
       arrival: "Thu 7/16, likely noon",
       departure: "Sun 7/19, TBD",
       profile: "https://www.linkedin.com/in/david-weizeorick-asa-maaa-b9701218a",
-      headshot: "./assets/people/stylized/headshots/david-headshot.jpg",
+      headshot: "./assets/optimized/people/headshots/david-headshot.webp",
       action: "./assets/people/stylized/action/david-action.jpg",
-      bio: "The committee believes David is likely arriving around noon, which is a sentence with both confidence and plausible deniability. Expected to price the risk of every side bet.",
-      strengths: ["Risk tables", "Noon probability", "Quiet menace"],
-      weakness: "A fully settled Sunday plan",
-      allegations: "May calculate everyone's true handicap",
+      bio: "Carries nonzero risk of missing the trip entirely, based on a documented history of missed flights and a golf swing that has somehow depreciated over time.",
+      strengths: ["Risk tables", "Myrtle Beach precedent", "Narrative volatility"],
+      weakness: "Flights, island greens, and year-over-year swing stability",
+      allegations: "Once putted off an island green and into a hazard",
     },
   ],
   lodging: [
     {
       name: "Ravenna Tournament House",
       address: "1206 Northeast 68th Street, Seattle, WA 98115",
-      image: "./assets/airbnb-ravenna.jpg",
+      image: "./assets/optimized/airbnb-ravenna-900.webp",
       detail: "Gorgeous 4bd/3ba house with AC, a BBQ grill, and a one-block walk to Roosevelt Light Rail. Official headquarters for sleep math, jacket security, and pretending this trip has a board of directors.",
       links: [
         ["Airbnb", "https://www.airbnb.com/rooms/886590523948778465"],
@@ -135,60 +135,43 @@ const trip = {
   ],
   courses: [
     {
-      round: "Likely Thursday",
+      day: "Thursday",
       name: "Mount Si Golf Course",
-      date: "Eastside board",
-      tee: "$85 greens fees",
-      image: "./assets/course-mount-si.jpg",
-      copy: "Best Thursday option according to the committee. Will let the group prebook, rents clubs for $30, and has therefore achieved frontrunner status.",
-      url: "https://mtsigolf.com/home/",
-      pairings: [
-        ["Status", "Prebook friendly"],
-        ["Rental clubs", "$30"],
-        ["Committee note", "Best Thursday option IMO"],
-      ],
+      status: "Unbooked",
+      teeTimes: "TBD",
+      phone: "425-391-4926",
+      address: "9010 Boalch Ave SE, Snoqualmie, WA 98065",
+      image: "./assets/optimized/courses/mount-si-900.webp",
+      copy: "A practical opening round in Snoqualmie with mountain views, rental clubs, and enough scenery to briefly disguise the quality of play.",
+      siteUrl: "https://www.mtsigolf.com/",
+      teeUrl: "https://www.mtsigolf.com/tee-times/",
+      mapUrl: "https://www.google.com/maps/search/?api=1&query=9010%20Boalch%20Ave%20SE%2C%20Snoqualmie%2C%20WA%2098065",
     },
     {
-      round: "Ferry Day",
+      day: "Friday",
       name: "Gold Mountain Golf Club",
-      date: "Bremerton",
-      tee: "Book 28 days ahead",
-      image: "./assets/course-gold-mountain.jpg",
-      copy: "Premier ferry-day candidate. Current instruction is to call John Sitton and book 28 days ahead if there is not a prior callback.",
-      url: "https://goldmountaingolf.com/",
-      pairings: [
-        ["Primary option", "Gold Mountain"],
-        ["Alternates", "Meadowmeer, Vashon, Whidbey, Port Townsend"],
-        ["Operational risk", "Ferry timing plus group confidence"],
-      ],
+      status: "Unbooked",
+      teeTimes: "TBD",
+      phone: "360-415-5432",
+      address: "7263 W Belfair Valley Rd, Bremerton, WA 98312",
+      image: "./assets/optimized/courses/gold-mountain-olympic-1100.webp",
+      copy: "The Olympic course is the ferry-day main event: forested, tournament-tested, and dramatic enough to justify a full logistical subplot.",
+      siteUrl: "https://goldmountaingolf.com/",
+      teeUrl: "https://www.chronogolf.com/en/club/14711/widget?medium=widget&source=club",
+      mapUrl: "https://www.google.com/maps/search/?api=1&query=7263%20W%20Belfair%20Valley%20Rd%2C%20Bremerton%2C%20WA%2098312",
     },
     {
-      round: "Splurge Round",
-      name: "Salish Cliffs / Newcastle",
-      date: "Friday or Saturday",
-      tee: "$100-$150 target",
-      image: "./assets/course-salish.jpg",
-      copy: "The premium board is live. Salish Cliffs will prebook Friday or Saturday with no deposit; Newcastle can work on the 18th but may require a contract.",
-      url: "https://salishcliffs.com/rates/",
-      pairings: [
-        ["Salish Cliffs", "Ask for Jeff"],
-        ["Newcastle", "Ryan · 425 646 6960"],
-        ["Other options", "Gold Mountain Olympic, Washington National, The Home Course"],
-      ],
-    },
-    {
-      round: "Backup Board",
-      name: "Eastside & Public Queue",
-      date: "Research docket",
-      tee: "Variable",
-      image: "./assets/course-newcastle.jpg",
-      copy: "Redmond Ridge has a tournament, Snoqualmie requires normal public booking, Maplewood's phones are in witness protection, and Druids Glen may call back.",
-      url: "https://redmondridgegolf.com/",
-      pairings: [
-        ["Redmond Ridge", "Tournament weekend"],
-        ["Snoqualmie Falls", "Book 6 days out"],
-        ["Druids Glen", "Message left"],
-      ],
+      day: "Saturday",
+      name: "Salish Cliffs Golf Club",
+      status: "Unbooked",
+      teeTimes: "TBD",
+      phone: "360-462-3673",
+      address: "91 W State Route 108, Shelton, WA 98584",
+      image: "./assets/optimized/courses/salish-900.webp",
+      copy: "A proper final-round venue near Shelton with secluded PNW views, GPS carts, a big practice setup, and enough elevation change to expose every lie about conditioning.",
+      siteUrl: "https://salishcliffs.com/",
+      teeUrl: "https://book.rguest.com/onecart/golf/courses/1937/LittleCreekCasinoResort",
+      mapUrl: "https://www.google.com/maps/search/?api=1&query=91%20W%20State%20Route%20108%2C%20Shelton%2C%20WA%2098584",
     },
   ],
   events: [
@@ -197,7 +180,7 @@ const trip = {
       title: "Arrivals & Ravenna Check-In",
       time: "4:00 PM check-in",
       place: "1206 Northeast 68th Street",
-      status: "Housing secured",
+      address: "1206 Northeast 68th Street, Seattle, WA 98115",
       copy: "Flights land in waves, the house opens, and the committee begins the delicate audit of clubs, bags, rides, and who has already overpacked.",
       link: "https://www.google.com/maps/search/?api=1&query=1206%20Northeast%2068th%20Street%2C%20Seattle%2C%20WA%2098115",
       linkLabel: "Open house map",
@@ -207,7 +190,6 @@ const trip = {
       title: "Mariners vs. Giants",
       time: "7:10 PM first pitch",
       place: "T-Mobile Park, Section 192",
-      status: "Baseball adjunct",
       copy: "Officially an evening cultural program. Unofficially Kevin Crews joins the delegation while everyone pretends Section 192 was selected by an analytics department.",
       link: "https://www.mlb.com/mariners/schedule/2026/fullseason",
       linkLabel: "Mariners schedule",
@@ -217,7 +199,6 @@ const trip = {
       title: "Moving Day & Champions Dinner",
       time: "After golf",
       place: "Seattle, venue TBD",
-      status: "Mandatory",
       copy: "Formal-ish meal where the leader will be treated with respect for roughly six minutes before rulings, allegations, and swing diagnoses resume.",
     },
     {
@@ -225,7 +206,6 @@ const trip = {
       title: "Checkout & Departures",
       time: "10:00 AM checkout",
       place: "Ravenna command center",
-      status: "Closing ceremony",
       copy: "Final accounting, luggage extraction, airport dispersal, and the quiet dignity of pretending no one is sore.",
     },
   ],
@@ -233,20 +213,20 @@ const trip = {
     {
       name: "Kevin Crews",
       role: "Mariners Game Guest",
-      image: "./assets/people/stylized/headshots/kevincrews-headshot.jpg",
+      image: "./assets/optimized/people/headshots/kevincrews-headshot.webp",
       detail: "High school with Liam, Evan, and Arjun at IMSA; elementary and middle school with John. A rare multi-era credentialed attendee.",
     },
     {
       name: "Japanese Guy",
       role: "Potential Seattle Cameo",
-      image: "./assets/people/japanese man.png",
+      image: "./assets/optimized/people/guests/japanese-man-620.webp",
       imageFit: "contain",
       detail: "Liam met a guy in Japan who is now in Seattle. This is exactly the kind of note an official tournament site should preserve forever.",
     },
     {
       name: "Josh, Kyla, Elora, and TBD",
       role: "Family Contingent",
-      image: "./assets/people/stylized/action/elora-josh-kyla-action.jpg",
+      image: "./assets/optimized/people/guests/elora-josh-kyla-900.webp",
       detail: "John's wife's brother Josh and family. Elora is four; another niece will exist by trip time, with naming rights still pending.",
     },
   ],
@@ -272,9 +252,19 @@ const eventList = document.querySelector("#eventList");
 const attendeeGrid = document.querySelector("#attendeeGrid");
 const bioDialog = document.querySelector("#bioDialog");
 const bioDialogContent = document.querySelector("#bioDialogContent");
-const playerSearch = document.querySelector("#playerSearch");
 const guestsGrid = document.querySelector("#guestsGrid");
 const outdoorsGrid = document.querySelector("#outdoorsGrid");
+const navLinks = [...document.querySelectorAll(".nav-links a")];
+const navSections = navLinks
+  .map((link) => document.querySelector(link.getAttribute("href")))
+  .filter(Boolean);
+const countdownTarget = new Date("2026-07-16T16:00:00-07:00").getTime();
+const countdownEls = {
+  days: document.querySelector("#countdownDays"),
+  hours: document.querySelector("#countdownHours"),
+  minutes: document.querySelector("#countdownMinutes"),
+  seconds: document.querySelector("#countdownSeconds"),
+};
 
 function initials(name) {
   return name
@@ -285,13 +275,35 @@ function initials(name) {
     .toUpperCase();
 }
 
+function copyAddressMarkup(address) {
+  return `
+    <span class="copy-address" role="button" tabindex="0" data-copy="${address}" aria-label="Copy ${address}">
+      ${address}
+    </span>
+  `;
+}
+
+function updateCountdown() {
+  const remaining = Math.max(0, countdownTarget - Date.now());
+  const totalSeconds = Math.floor(remaining / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  countdownEls.days.textContent = String(days);
+  countdownEls.hours.textContent = String(hours).padStart(2, "0");
+  countdownEls.minutes.textContent = String(minutes).padStart(2, "0");
+  countdownEls.seconds.textContent = String(seconds).padStart(2, "0");
+}
+
 function renderLeaderboard() {
   leaderboard.innerHTML = trip.players
     .map(
       (player, index) => `
         <button type="button" data-player="${index}" aria-label="Open dossier for ${player.name}">
           <span class="board-row">
-            <img class="board-photo" src="${player.headshot}" alt="" />
+            <img class="board-photo" src="${player.headshot}" alt="" width="42" height="42" decoding="async" />
             <span class="board-rank">${player.rank}</span>
             <span class="board-name">${player.name}</span>
             <span class="board-score">${player.score}</span>
@@ -312,7 +324,6 @@ function renderTravel() {
           </td>
           <td>${player.arrival}</td>
           <td>${player.departure}</td>
-          <td>${player.allegations}</td>
         </tr>
       `,
     )
@@ -324,8 +335,8 @@ function renderLodging() {
     .map(
       (item) => `
         <article class="lodging-card">
-          ${item.image ? `<img class="card-photo" src="${item.image}" alt="${item.name}" />` : ""}
-          <p class="kicker dark">${item.address}</p>
+          ${item.image ? `<img class="card-photo" src="${item.image}" alt="${item.name}" loading="lazy" decoding="async" />` : ""}
+          <p class="kicker dark">${copyAddressMarkup(item.address)}</p>
           <h3>${item.name}</h3>
           <p>${item.detail}</p>
           ${
@@ -348,15 +359,21 @@ function renderCourse(index = 0) {
   const course = trip.courses[index];
   coursePanel.innerHTML = `
     <div class="course-visual">
-      <img src="${course.image}" alt="${course.name}" />
+      <img src="${course.image}" alt="${course.name}" loading="lazy" decoding="async" />
     </div>
     <div class="course-details">
-      <p class="kicker dark">${course.round} · ${course.date} · ${course.tee}</p>
+      <p class="kicker dark">${course.day}</p>
       <h3>${course.name}</h3>
+      <p class="course-status">${course.status}</p>
       <p class="course-copy">${course.copy}</p>
-      <a class="course-link" href="${course.url}" target="_blank" rel="noreferrer">Open course site</a>
-      <div class="pairings">
-        ${course.pairings.map((pairing) => `<div class="pairing"><span>${pairing[0]}</span><span>${pairing[1]}</span></div>`).join("")}
+      <div class="course-links">
+        <a href="${course.siteUrl}" target="_blank" rel="noreferrer">Website</a>
+        <a href="${course.mapUrl}" target="_blank" rel="noreferrer">Map</a>
+        <a href="tel:${course.phone.replace(/[^0-9]/g, "")}">${course.phone}</a>
+      </div>
+      <div class="course-facts">
+        <div><span>Tee times</span><strong>${course.teeTimes}</strong></div>
+        <div><span>Address</span><strong>${copyAddressMarkup(course.address)}</strong></div>
       </div>
     </div>
   `;
@@ -370,11 +387,12 @@ function renderEvents() {
           <div class="date-chip">${event.date}</div>
           <div>
             <h3>${event.title}</h3>
-            <p class="event-meta">${event.time} · ${event.place}</p>
+            <p class="event-meta">
+              ${event.time} · ${event.address ? copyAddressMarkup(event.address) : event.place}
+            </p>
             <p>${event.copy}</p>
             ${event.link ? `<a class="event-link" href="${event.link}" target="_blank" rel="noreferrer">${event.linkLabel}</a>` : ""}
           </div>
-          <span class="status">${event.status}</span>
         </article>
       `,
     )
@@ -383,34 +401,21 @@ function renderEvents() {
 
 function playerCard(player, index) {
   return `
-    <article class="attendee-card">
+    <article class="attendee-card" data-player="${index}" tabindex="0" role="button" aria-label="Open dossier for ${player.name}">
       <div class="attendee-top">
-        <img class="avatar" src="${player.headshot}" alt="${player.name}" />
+        <img class="avatar" src="${player.headshot}" alt="${player.name}" width="54" height="54" loading="lazy" decoding="async" />
         <div>
           <h3>${player.name}</h3>
+          <span>View dossier</span>
         </div>
       </div>
       <p>${player.bio}</p>
-      <div class="traits">
-        ${player.strengths.map((trait) => `<span>${trait}</span>`).join("")}
-      </div>
-      <div class="card-actions">
-        <button class="bio-button" type="button" data-player="${index}">Open Official Dossier</button>
-        <a class="profile-link" href="${player.profile}" target="_blank" rel="noreferrer">LinkedIn</a>
-      </div>
     </article>
   `;
 }
 
-function renderAttendees(query = "") {
-  const normalized = query.trim().toLowerCase();
-  const filtered = trip.players.filter((player) => {
-    const searchable = [player.name, player.title, player.handicap, player.bio, player.weakness, player.allegations, ...player.strengths]
-      .join(" ")
-      .toLowerCase();
-    return searchable.includes(normalized);
-  });
-  attendeeGrid.innerHTML = filtered.map((player) => playerCard(player, trip.players.indexOf(player))).join("");
+function renderAttendees() {
+  attendeeGrid.innerHTML = trip.players.map((player, index) => playerCard(player, index)).join("");
 }
 
 function renderGuests() {
@@ -418,7 +423,7 @@ function renderGuests() {
     .map(
       (guest) => `
         <article class="guest-card">
-          ${guest.image ? `<img class="guest-photo ${guest.imageFit === "contain" ? "contain" : ""}" src="${guest.image}" alt="${guest.name}" />` : ""}
+          ${guest.image ? `<img class="guest-photo ${guest.imageFit === "contain" ? "contain" : ""}" src="${guest.image}" alt="${guest.name}" loading="lazy" decoding="async" />` : ""}
           <p class="kicker dark">${guest.role}</p>
           <h3>${guest.name}</h3>
           <p>${guest.detail}</p>
@@ -446,8 +451,11 @@ function openBio(index) {
   const player = trip.players[index];
   bioDialogContent.innerHTML = `
     <div class="dialog-hero">
-      <img class="dialog-action" src="${player.headshot}" alt="${player.name}" />
-      <h2>${player.name}</h2>
+      <img class="dialog-action" src="${player.headshot}" alt="${player.name}" width="128" height="128" decoding="async" />
+      <div>
+        <p class="dialog-title">${player.title}</p>
+        <h2>${player.name}</h2>
+      </div>
     </div>
     <div class="dialog-body">
       <p>${player.bio}</p>
@@ -462,6 +470,41 @@ function openBio(index) {
   bioDialog.showModal();
 }
 
+function setActiveNav(sectionId = "") {
+  navLinks.forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === `#${sectionId}`);
+  });
+}
+
+function updateActiveNav() {
+  const headerOffset = document.querySelector(".topbar").offsetHeight + 12;
+  const current = navSections
+    .filter((section) => section.getBoundingClientRect().top <= headerOffset)
+    .at(-1);
+  setActiveNav(current?.id);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  textArea.remove();
+}
+
+navLinks.forEach((link) => link.addEventListener("click", () => setActiveNav(link.getAttribute("href").slice(1))));
+document.addEventListener("scroll", updateActiveNav, { passive: true });
+window.addEventListener("resize", updateActiveNav);
+
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((item) => {
@@ -475,13 +518,46 @@ document.querySelectorAll(".tab").forEach((tab) => {
 });
 
 document.body.addEventListener("click", (event) => {
+  const copyTarget = event.target.closest("[data-copy]");
+  if (copyTarget) {
+    copyText(copyTarget.dataset.copy).then(() => {
+      copyTarget.classList.add("copied");
+      window.setTimeout(() => {
+        copyTarget.classList.remove("copied");
+      }, 1400);
+    });
+    return;
+  }
+
   const button = event.target.closest("[data-player]");
   if (!button) return;
   openBio(Number(button.dataset.player));
 });
 
+document.body.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const copyTarget = event.target.closest("[data-copy]");
+  if (copyTarget) {
+    event.preventDefault();
+    copyText(copyTarget.dataset.copy).then(() => {
+      copyTarget.classList.add("copied");
+      window.setTimeout(() => {
+        copyTarget.classList.remove("copied");
+      }, 1400);
+    });
+    return;
+  }
+
+  const button = event.target.closest("[data-player]");
+  if (!button) return;
+  event.preventDefault();
+  openBio(Number(button.dataset.player));
+});
+
 document.querySelector(".dialog-close").addEventListener("click", () => bioDialog.close());
-playerSearch.addEventListener("input", (event) => renderAttendees(event.target.value));
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
 
 renderLeaderboard();
 renderTravel();
@@ -491,3 +567,4 @@ renderEvents();
 renderAttendees();
 renderGuests();
 renderOutdoors();
+updateActiveNav();
