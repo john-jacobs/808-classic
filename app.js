@@ -163,7 +163,7 @@ const fallbackTrip = {
     {
       key: "about",
       title: "Second Annual. First Real Attempt at Legitimacy.",
-      body: "The 808 Classic is the annual reconvening of the 808 Cali Boys: a cross-country attempt to get everyone back in the same place, play some golf, and pretend our calendars are not a disaster.\n\nThe name traces back to 808 California Ave in Urbana, where the group lived senior year before graduating in 2013. Year two brings the Orange Jacket to Seattle, with Illinois roots, scattered home bases, and just enough ceremony to make a normal golf trip feel questionably official.",
+      body: "The 808 Classic is the annual reconvening of the 808 Cali Boys: a cross-country effort to get everyone back in the same place, play some golf, and keep the old house alive in a slightly more official form.\n\nThe name traces back to 808 California Ave in Urbana, where the group lived senior year before graduating in 2013. Year two brings the Orange Jacket to Seattle, with Illinois roots, scattered home bases, and just enough ceremony to make a normal golf trip feel questionably official.",
     },
     {
       key: "history",
