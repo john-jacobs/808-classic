@@ -21,7 +21,7 @@ const fallbackTrip = {
       departure: "Staying into the next week",
       headshot: "./assets/optimized/people/headshots/liam-headshot.webp",
       action: "./assets/people/stylized/action/liam-action.jpg",
-      blurb: "Serving as the unofficial Seattle representative by staying beyond the Classic itself, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and any non-golf social programming Seattle can provide.",
+      blurb: "The unofficial Seattle representative for the week, more invested in everyone properly appreciating the city than in the golf itself. He is staying beyond the Classic and, if we are being honest, may be personally more excited to see Kevin Crews and Japanese Guy than the 808 Cali Boys.",
       strength: "Guest diplomacy",
       weakness: "Golf, including the parts before and after contact",
     },
