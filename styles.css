@@ -754,23 +754,37 @@ td small {
 
 .event-list {
   display: grid;
-  gap: 14px;
+  gap: 18px;
+}
+
+.event-day {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.event-day-items {
+  display: grid;
+  gap: 10px;
 }
 
 .event-item {
   display: grid;
-  grid-template-columns: 150px 1fr;
-  gap: 20px;
-  align-items: center;
+  gap: 8px;
   padding: 20px;
 }
 
 .event-meta {
-  margin: 4px 0 8px;
+  margin: 0;
   color: var(--orange-dark);
   font-size: 0.78rem;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.event-item p:not(.event-meta) {
+  margin: 0;
 }
 
 .event-link {
@@ -792,7 +806,8 @@ td small {
 .date-chip {
   display: grid;
   place-items: center;
-  min-height: 88px;
+  min-height: 100%;
+  padding: 18px;
   color: #fff;
   background: var(--navy);
   font-weight: 900;
@@ -1069,8 +1084,12 @@ td small {
 
   .ticker,
   .course-panel,
-  .event-item {
+  .event-day {
     grid-template-columns: 1fr;
+  }
+
+  .date-chip {
+    min-height: 56px;
   }
 
   .about-classic {

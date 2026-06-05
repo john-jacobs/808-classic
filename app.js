@@ -707,25 +707,37 @@ function renderCourse(index = 0) {
 }
 
 function renderEvents() {
-  eventList.innerHTML = trip.events
+  const groups = trip.events.reduce((collection, event) => {
+    const date = event.date || "TBD";
+    if (!collection.has(date)) collection.set(date, []);
+    collection.get(date).push(event);
+    return collection;
+  }, new Map());
+
+  eventList.innerHTML = [...groups.entries()]
     .map(
-      (event) => {
-        const link = event.link || event.url;
-        const linkLabel = event.linkLabel || event.link_label || "Open link";
-        return `
-        <article class="event-item">
-          <div class="date-chip">${event.date}</div>
-          <div>
-            <h3>${event.title}</h3>
-            <p class="event-meta">
-              ${event.time} · ${event.address ? copyAddressMarkup(event.address) : event.place}
-            </p>
-            <p>${event.copy || event.detail || event.blurb || ""}</p>
-            ${link ? `<a class="event-link" href="${link}" target="_blank" rel="noreferrer">${linkLabel}</a>` : ""}
+      ([date, events]) => `
+        <section class="event-day" aria-label="${date}">
+          <div class="date-chip">${date}</div>
+          <div class="event-day-items">
+            ${events
+              .map((event) => {
+                const link = event.link || event.url;
+                const linkLabel = event.linkLabel || event.link_label || "Open link";
+                const meta = [event.time, event.address ? copyAddressMarkup(event.address) : event.place].filter(Boolean).join(" · ");
+                return `
+                  <article class="event-item">
+                    <h3>${event.title}</h3>
+                    ${meta ? `<p class="event-meta">${meta}</p>` : ""}
+                    <p>${event.copy || event.detail || event.blurb || ""}</p>
+                    ${link ? `<a class="event-link" href="${link}" target="_blank" rel="noreferrer">${linkLabel}</a>` : ""}
+                  </article>
+                `;
+              })
+              .join("")}
           </div>
-        </article>
-      `;
-      },
+        </section>
+      `,
     )
     .join("");
 }
