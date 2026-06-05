@@ -899,7 +899,7 @@ td small {
 }
 
 .bio-dialog {
-  width: min(720px, calc(100% - 30px));
+  width: min(860px, calc(100% - 30px));
   padding: 0;
   border: 0;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
@@ -995,15 +995,21 @@ td small {
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1px;
   margin-top: 22px;
   background: var(--line);
 }
 
 .stat-grid div {
+  grid-column: span 2;
   padding: 16px;
   background: var(--paper);
+  min-width: 0;
+}
+
+.stat-grid .stat-trait {
+  grid-column: span 3;
 }
 
 .stat-grid span {
@@ -1018,7 +1024,9 @@ td small {
   display: block;
   margin-top: 6px;
   color: var(--navy);
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
 .footer {
@@ -1187,6 +1195,11 @@ td small {
 
   .stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stat-grid div,
+  .stat-grid .stat-trait {
+    grid-column: auto;
   }
 
   .dialog-hero {

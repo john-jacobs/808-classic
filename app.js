@@ -799,8 +799,8 @@ function openBio(index) {
         <div><span>Handicap</span><strong>${player.handicap}</strong></div>
         <div><span>Odds</span><strong>${player.odds || "TBD"}</strong></div>
         <div><span>Classic Record</span><strong>${player.classicRecord || "TBD"}</strong></div>
-        <div><span>Strength</span><strong>${player.strength || "TBD"}</strong></div>
-        <div><span>Weakness</span><strong>${player.weakness || "TBD"}</strong></div>
+        <div class="stat-trait"><span>Strength</span><strong>${player.strength || "TBD"}</strong></div>
+        <div class="stat-trait"><span>Weakness</span><strong>${player.weakness || "TBD"}</strong></div>
       </div>
     </div>
   `;
