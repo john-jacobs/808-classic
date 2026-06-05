@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="808 Classic">
+  <rect width="512" height="512" fill="#13294b"/>
+  <rect x="44" y="44" width="424" height="424" fill="#ff5f05" stroke="#fff8ef" stroke-width="20"/>
+  <text x="256" y="300" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="156" font-weight="900">808</text>
+</svg>
