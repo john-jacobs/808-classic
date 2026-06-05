@@ -345,6 +345,11 @@ h2 {
   align-items: start;
 }
 
+.about-panel:has(h2[hidden]) {
+  grid-template-columns: minmax(0, 920px);
+  justify-content: center;
+}
+
 .about-panel h2 {
   max-width: 560px;
   color: #fff;
