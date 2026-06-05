@@ -21,7 +21,7 @@ const fallbackTrip = {
       departure: "Staying into the next week",
       headshot: "./assets/optimized/people/headshots/liam-headshot.webp",
       action: "./assets/people/stylized/action/liam-action.jpg",
-      blurb: "Flying in for the full Seattle residency and eligible for every official function, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and any non-golf social programming Seattle can provide.",
+      blurb: "Serving as the unofficial Seattle representative by staying beyond the Classic itself, though early indicators suggest his true priorities are Kevin Crews, Japanese Guy, and any non-golf social programming Seattle can provide.",
       strength: "Guest diplomacy",
       weakness: "Golf, including the parts before and after contact",
     },
