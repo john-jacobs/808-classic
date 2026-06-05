@@ -163,7 +163,7 @@ const fallbackTrip = {
     {
       key: "about",
       title: "Second Annual. First Real Attempt at Legitimacy.",
-      body: "The 808 Classic is the annual golf trip born after the group ran out of bachelor parties and needed a new sanctioned reason to reunite.\n\nThe name traces back to 808 California Ave in Urbana, where the 808 Cali Bros lived senior year before graduating in 2013. Year two brings the jacket to Seattle, partly for Chuck's Mariners agenda and partly because the West Coast delegation was not going to object.",
+      body: "The 808 Classic is the annual reconvening of the 808 Cali Boys: a cross-country attempt to get everyone back in the same place, play some golf, and pretend our calendars are not a disaster.\n\nThe name traces back to 808 California Ave in Urbana, where the group lived senior year before graduating in 2013. Year two brings the Orange Jacket to Seattle, with Illinois roots, scattered home bases, and just enough ceremony to make a normal golf trip feel questionably official.",
     },
     {
       key: "history",
