@@ -358,9 +358,9 @@ function normalizePerson(person = {}, attendance = {}) {
     title: firstPresent(person.title, attendance.title, "Player"),
     city: firstPresent(person.city, person.location),
     height: firstPresent(person.height),
-    handicap: firstPresent(attendance.handicap, person.handicap, "TBD"),
-    odds: firstPresent(attendance.odds, person.odds, "TBD"),
-    classicRecord: firstPresent(attendance.classic_record, person.classic_record, person.classicRecord),
+    handicap: firstPresent(person.handicap, attendance.handicap, "TBD"),
+    odds: firstPresent(person.odds, attendance.odds, "TBD"),
+    classicRecord: firstPresent(person.classic_record, person.classicRecord, attendance.classic_record),
     quote: firstPresent(person.quote, attendance.quote),
     blurb,
     bio: blurb,
@@ -488,10 +488,11 @@ function loadGoogleSheetTab(tabName) {
       delete window[callbackName];
       script.remove();
       reject(new Error(`Timed out loading ${tabName}`));
-    }, 6000);
+    }, 15000);
 
     url.searchParams.set("tqx", `out:json;responseHandler:${callbackName}`);
     url.searchParams.set("sheet", tabName);
+    url.searchParams.set("_", Date.now().toString());
 
     window[callbackName] = (response) => {
       window.clearTimeout(timeout);
@@ -527,8 +528,23 @@ function loadGoogleSheetTab(tabName) {
 }
 
 async function loadGoogleSheetData() {
-  const entries = await Promise.all(GOOGLE_SHEET_TABS.map(async (tab) => [tab, await loadGoogleSheetTab(tab)]));
-  return Object.fromEntries(entries);
+  const results = await Promise.allSettled(GOOGLE_SHEET_TABS.map((tab) => loadGoogleSheetTab(tab)));
+  const data = {};
+
+  results.forEach((result, index) => {
+    const tab = GOOGLE_SHEET_TABS[index];
+    if (result.status === "fulfilled") {
+      data[tab] = result.value;
+    } else {
+      console.warn(`Unable to load Google Sheet tab: ${tab}`, result.reason);
+    }
+  });
+
+  if (!Array.isArray(data.people) || !Array.isArray(data.classic_attendance)) {
+    throw new Error("Required Google Sheet tabs did not load");
+  }
+
+  return data;
 }
 
 function initials(name) {
