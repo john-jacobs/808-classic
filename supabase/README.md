@@ -31,8 +31,9 @@ Never create a variable whose name exposes `SUPABASE_SECRET_KEY` to browser code
 4. Add each attending member to `trip_attendance` and the appropriate `round_players`.
 5. Configure the Cloudflare Pages environment variables above.
 
-The Google Sheet remains the CMS for logistics. Supabase owns interactive, live,
-and year-over-year data.
+Supabase is the source of truth for the visible Tournament Central page,
+interactive features, and year-over-year data. The original Google Sheet is
+retained only as a migration reference.
 
 ## Project
 

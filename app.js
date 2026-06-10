@@ -1,6 +1,4 @@
-const CMS_ENDPOINT = "";
-const GOOGLE_SHEET_ID = "1AKufVeZHkFDZlqPAKimku8onQ43nApdpKlxKCuEv84Q";
-const GOOGLE_SHEET_TABS = ["people", "classic_attendance", "site_copy", "lodging", "courses", "events", "guests"];
+const CMS_ENDPOINT = "/api/tournament";
 const CURRENT_CLASSIC_YEAR = "2026";
 
 const fallbackTrip = {
@@ -363,14 +361,6 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-function keyify(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
 function firstPresent(...values) {
   return values.find(present) || "";
 }
@@ -492,87 +482,10 @@ function escapeHtml(value) {
 }
 
 async function loadCmsTrip() {
-  let data;
-
-  if (CMS_ENDPOINT) {
-    const response = await fetch(CMS_ENDPOINT, { cache: "no-store" });
-    if (!response.ok) throw new Error(`CMS request failed: ${response.status}`);
-    data = await response.json();
-  } else if (GOOGLE_SHEET_ID) {
-    data = await loadGoogleSheetData();
-  } else {
-    return;
-  }
-
+  const response = await fetch(CMS_ENDPOINT, { cache: "no-store" });
+  if (!response.ok) throw new Error(`CMS request failed: ${response.status}`);
+  const data = await response.json();
   trip = normalizeTrip(data);
-}
-
-function loadGoogleSheetTab(tabName) {
-  return new Promise((resolve, reject) => {
-    const callbackName = `__cms_${tabName}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement("script");
-    const url = new URL(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq`);
-    const timeout = window.setTimeout(() => {
-      delete window[callbackName];
-      script.remove();
-      reject(new Error(`Timed out loading ${tabName}`));
-    }, 15000);
-
-    url.searchParams.set("tqx", `out:json;responseHandler:${callbackName}`);
-    url.searchParams.set("sheet", tabName);
-    url.searchParams.set("_", Date.now().toString());
-
-    window[callbackName] = (response) => {
-      window.clearTimeout(timeout);
-      delete window[callbackName];
-      script.remove();
-
-      if (response.status === "error") {
-        reject(new Error(response.errors?.[0]?.detailed_message || `Unable to load ${tabName}`));
-        return;
-      }
-
-      const columns = response.table.cols.map((column) => keyify(column.label || column.id));
-      const rows = response.table.rows.map((row) =>
-        columns.reduce((record, key, index) => {
-          record[key] = row.c[index]?.f ?? row.c[index]?.v ?? "";
-          return record;
-        }, {}),
-      );
-
-      resolve(rows.filter((row) => Object.values(row).some(present)));
-    };
-
-    script.onerror = () => {
-      window.clearTimeout(timeout);
-      delete window[callbackName];
-      script.remove();
-      reject(new Error(`Unable to load ${tabName}`));
-    };
-
-    script.src = url.toString();
-    document.head.appendChild(script);
-  });
-}
-
-async function loadGoogleSheetData() {
-  const results = await Promise.allSettled(GOOGLE_SHEET_TABS.map((tab) => loadGoogleSheetTab(tab)));
-  const data = {};
-
-  results.forEach((result, index) => {
-    const tab = GOOGLE_SHEET_TABS[index];
-    if (result.status === "fulfilled") {
-      data[tab] = result.value;
-    } else {
-      console.warn(`Unable to load Google Sheet tab: ${tab}`, result.reason);
-    }
-  });
-
-  if (!Array.isArray(data.people) || !Array.isArray(data.classic_attendance)) {
-    throw new Error("Required Google Sheet tabs did not load");
-  }
-
-  return data;
 }
 
 function initials(name) {

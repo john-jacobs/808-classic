@@ -2,10 +2,12 @@
 
 ## Product Boundary
 
-Google Sheets remains responsible for slower-changing logistics and editorial copy.
-Supabase owns live, interactive, and historical data:
+Supabase is the source of truth for tournament configuration, live activity, and
+historical data:
 
 - groups and members
+- tournament series, editions, people, and participants
+- configurable content, lodging, courses, and itinerary events
 - annual trips and attendance
 - social posts, photos, comments, and reactions
 - rounds, players, and hole-by-hole scores
@@ -26,6 +28,7 @@ use the server-only Supabase secret key after checking group membership.
 | --- | --- | --- |
 | `/api/health` | GET | Verify Access identity and backend connectivity |
 | `/api/session` | GET | Return the current 808 member and active trip |
+| `/api/tournament` | GET | Return the configured Tournament Central page |
 | `/api/feed` | GET | Return the active trip's latest posts |
 | `/api/posts` | POST | Create a feed post |
 | `/api/comments` | POST | Comment on a post in the active trip |

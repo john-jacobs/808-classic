@@ -1,17 +1,13 @@
-# 808 Classic Google Sheets CMS
+# Legacy Google Sheets Migration Reference
 
-The site can load content directly from the Google Sheet through Google's visualization feed. Until the Sheet is shared publicly, the site uses the local fallback data.
+The visible site now loads its configuration from Supabase through
+`/api/tournament`. This document records the original Google Sheet structure for
+migration and audit purposes only.
 
 ## Setup
 
-1. Create and seed the Google Sheet.
-2. In Google Sheets, click `Share`.
-3. Set general access to `Anyone with the link`.
-4. Set role to `Viewer`.
-5. The site reads the Sheet ID from `GOOGLE_SHEET_ID` at the top of `app.js`.
-6. After that, edit content directly in the Google Sheet. Add rows freely.
-
-No Apps Script is required for the current setup.
+Do not use the Sheet as the production CMS. Future content editing will happen
+inside Tournament Central.
 
 ## `people`
 

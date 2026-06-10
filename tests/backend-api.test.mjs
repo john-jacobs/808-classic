@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { onRequestGet as health } from "../functions/api/health.js";
+import { onRequestGet as tournament } from "../functions/api/tournament.js";
 import { onRequestPost as createPost } from "../functions/api/posts.js";
 import { supabaseRequest } from "../functions/_lib/supabase.js";
 
@@ -98,4 +99,48 @@ test("post creation derives tenant and author from the verified member", async (
   assert.equal(insert.author_id, "member-1");
   assert.equal(insert.group_id, "group-1");
   assert.equal(insert.trip_id, "trip-1");
+});
+
+test("tournament endpoint returns configured page data from Supabase", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "owner" }]);
+    if (url.includes("/trips?")) return Response.json([{ id: "trip-1", year: 2026, name: "808 Classic 2026" }]);
+    if (url.includes("/people?")) {
+      return Response.json([{
+        slug: "john-jacobs",
+        display_name: "John Jacobs",
+        handicap: 15.3,
+        person_type: "current_player",
+        sort_order: 1,
+        active: true,
+      }]);
+    }
+    if (url.includes("/tournament_participants?")) {
+      return Response.json([{
+        participant_type: "player",
+        rank: 1,
+        leaderboard_score: "E",
+        handicap: 10,
+        sort_order: 1,
+        active: true,
+        person: { slug: "john-jacobs", display_name: "John Jacobs" },
+      }]);
+    }
+    if (url.includes("/content_sections?")) return Response.json([]);
+    if (url.includes("/lodging_options?")) return Response.json([]);
+    if (url.includes("/tournament_courses?")) return Response.json([]);
+    if (url.includes("/itinerary_events?")) return Response.json([]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await tournament({ request: accessRequest("https://example.com/api/tournament"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.people[0].handicap, 15.3);
+  assert.equal(body.classic_attendance[0].handicap, 10);
+  assert.equal(body.classic_attendance[0].score, "E");
 });
