@@ -18,6 +18,11 @@ function accessRequest(url, init = {}) {
   return new Request(url, { ...init, headers });
 }
 
+function unsignedAccessToken(email) {
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return `${encode({ alg: "RS256", typ: "JWT" })}.${encode({ email })}.test-signature`;
+}
+
 test("modern Supabase secret keys are sent only through apikey", async () => {
   let requestHeaders;
   globalThis.fetch = async (_url, options) => {
@@ -35,6 +40,28 @@ test("health requires a Cloudflare Access identity", async () => {
   const response = await health({ request: new Request("https://example.com/api/health"), env });
   assert.equal(response.status, 401);
   assert.deepEqual(await response.json(), { error: "Cloudflare Access identity is missing" });
+});
+
+test("health can resolve identity from the Access authorization cookie", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) {
+      return Response.json([{ role: "owner" }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await health({
+    request: new Request("https://example.com/api/health", {
+      headers: { cookie: `CF_Authorization=${unsignedAccessToken("john@example.com")}` },
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true, member: "John" });
 });
 
 test("post creation derives tenant and author from the verified member", async () => {
