@@ -1,0 +1,9 @@
+create index comments_author_idx on public.comments (author_id);
+create index hole_scores_entered_by_idx on public.hole_scores (entered_by);
+create index hole_scores_member_idx on public.hole_scores (member_id);
+create index post_media_post_idx on public.post_media (post_id);
+create index post_reactions_member_idx on public.post_reactions (member_id);
+create index posts_author_idx on public.posts (author_id);
+create index posts_group_idx on public.posts (group_id);
+create index round_players_member_idx on public.round_players (member_id);
+create index trip_attendance_member_idx on public.trip_attendance (member_id);

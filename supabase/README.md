@@ -15,7 +15,7 @@ server-only secret key after checking group membership.
 Configure these as encrypted Cloudflare Pages environment variables:
 
 ```text
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_URL=https://vjbjzgjudqnrtjipojds.supabase.co
 SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SECRET_KEY
 SUPABASE_GROUP_ID=80800000-0000-4000-8000-000000000001
 SUPABASE_TRIP_ID=80800000-0000-4000-8000-000000002026
@@ -33,3 +33,9 @@ Never create a variable whose name exposes `SUPABASE_SECRET_KEY` to browser code
 
 The Google Sheet remains the CMS for logistics. Supabase owns interactive, live,
 and year-over-year data.
+
+## Project
+
+- Name: `808 Classic`
+- Project reference: `vjbjzgjudqnrtjipojds`
+- Region: `us-west-1`
