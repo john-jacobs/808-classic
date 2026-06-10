@@ -232,7 +232,7 @@ const fallbackTrip = {
   events: [
     {
       date: "Thu Jul 16",
-      title: "Interbay Golf Center",
+      title: "Golf at Interbay Golf Center",
       time: "Tee time TBD",
       place: "Interbay Golf Center",
       address: "2501 15th Avenue West, Seattle, WA 98119",
@@ -242,7 +242,7 @@ const fallbackTrip = {
     },
     {
       date: "Fri Jul 17",
-      title: "Jackson Park Golf Course",
+      title: "Golf at Jackson Park Golf Course",
       time: "Tee time TBD",
       place: "Jackson Park Golf Course",
       address: "1000 NE 135th Street, Seattle, WA 98125",
@@ -271,7 +271,7 @@ const fallbackTrip = {
     },
     {
       date: "Sat Jul 18",
-      title: "Gold Mountain Golf Club",
+      title: "Golf at Gold Mountain Golf Club",
       time: "Tee time TBD",
       place: "Gold Mountain Golf Club",
       address: "7263 W Belfair Valley Rd, Bremerton, WA 98312",
