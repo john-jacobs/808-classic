@@ -1,4 +1,5 @@
 const CMS_ENDPOINT = "/api/tournament";
+const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
 
 const fallbackTrip = {
@@ -315,9 +316,47 @@ const fallbackTrip = {
   ],
 };
 
+const fallbackWirePosts = [
+  {
+    type: "dispatch",
+    headline: "Chuck Turns Back Arnaud at Macktown, 105-114",
+    dek: "A nervous challenger, a microscopic serving of birdie juice, and a back-nine charge settle the first match of the 2026 campaign.",
+    byline: "808 Wire Staff",
+    location: "Rockton, Illinois",
+    published_at: "2026-06-12T15:30:00-05:00",
+    body: `Macktown Golf Course once hosted an LPGA Tour event, welcoming winners including Betsy Rawls and Sandra Haynie between 1958 and 1965. On Friday, it provided a similarly historic stage for Charles Vokes and Arnaud Brisard to combine for 219 strokes.
+
+Arnaud arrived nervous for reasons that remain unclear and addressed those nerves by drinking heavily. Chuck arrived sober and running his mouth. The opening stretch nevertheless belonged to Arnaud, who built a four-shot advantage before announcing that Chuck was considerably better. It was an unusually generous scouting report to deliver while leading.
+
+Chuck steadied himself, turned a 55, and then produced the round's decisive stretch on the back nine. His closing 50 beat Arnaud's inward 56 and completed a nine-shot victory, 105 to 114. During the charge, Arnaud reported that Chuck was a monster on the back nine and documented a narrowly missed long birdie putt with the dispatch: "Chuck baggy just missed a long birdie put."
+
+The defending champion's actual birdie activated the agreed-upon Fireball birdie-juice protocol. Chuck, who was not drinking, complied with a sip so small that its competitive and medicinal effects remain under review.
+
+Arnaud spent portions of the round as a self-described head case. Chuck, serving as a golf coach despite ultimately signing for 105, talked him down. By the closing holes, the student had become the public-relations department: "Chuck played insane on the last couple holes. Chuck is a very good golfer."
+
+Chuck offered no reciprocal evaluation of Arnaud. Asked for comment, he first assessed himself: "I need to stop fucking around around the green. Irons weren't great but I figured them out like I did at Lochmere with Jake." Pressed to say something about his opponent, he declined to trash talk and submitted only: "It was beautiful weather on a nice course swinginf a club."`,
+    metadata: {
+      course: "Macktown Golf Course",
+      course_note: "Host of an LPGA Tour event from 1958 through 1965.",
+      source_url: "https://en.wikipedia.org/wiki/Cosmopolitan_Open",
+      scorecard: [
+        { name: "Charles Vokes", front: 55, back: 50, total: 105, to_par: "+34" },
+        { name: "Arnaud Brisard", front: 58, back: 56, total: 114, to_par: "+43" },
+      ],
+    },
+    media: [
+      { storage_path: "./assets/wire/arnaud-chuck-macktown.webp", sort_order: 0 },
+      { storage_path: "./assets/wire/arnaud-chuck-scorecard.webp", sort_order: 1 },
+    ],
+  },
+];
+
 let trip = normalizeTrip(fallbackTrip);
+let wirePosts = fallbackWirePosts;
 
 const leaderboard = document.querySelector("#leaderboard");
+const wireFeed = document.querySelector("#wireFeed");
+const wireDate = document.querySelector("#wireDate");
 const travelRows = document.querySelector("#travelRows");
 const lodgingGrid = document.querySelector("#lodgingGrid");
 const courseTabs = document.querySelector(".course-tabs");
@@ -488,6 +527,13 @@ async function loadCmsTrip() {
   trip = normalizeTrip(data);
 }
 
+async function loadWire() {
+  const response = await fetch(FEED_ENDPOINT, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Feed request failed: ${response.status}`);
+  const data = await response.json();
+  wirePosts = data.posts || [];
+}
+
 function initials(name) {
   return name
     .split(" ")
@@ -544,6 +590,93 @@ function renderSiteCopy() {
     if (present(history.title)) historyTitle.textContent = history.title;
     if (present(history.body)) renderParagraphs(historyCopy, history.body);
   }
+}
+
+function formatWireDate(value) {
+  if (!present(value)) return "";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function renderWire() {
+  const post = wirePosts[0];
+  if (!post) {
+    wireFeed.innerHTML = `<p class="wire-empty">No dispatches have cleared the desk.</p>`;
+    return;
+  }
+
+  const metadata = post.metadata || {};
+  const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+  const featureImage = media[0]?.storage_path;
+  const scorecardImage = media[1]?.storage_path;
+  const scores = metadata.scorecard || [];
+  const published = formatWireDate(post.published_at || post.created_at);
+
+  wireDate.textContent = published;
+  wireFeed.innerHTML = `
+    <article class="wire-story">
+      <header class="wire-story-head">
+        <p class="wire-label">${escapeHtml(post.type === "dispatch" ? "Match report" : post.type || "Dispatch")}</p>
+        <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
+        ${post.dek ? `<p class="wire-dek">${escapeHtml(post.dek)}</p>` : ""}
+        <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
+      </header>
+
+      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="Arnaud Brisard and Charles Vokes at Macktown Golf Course" loading="lazy" decoding="async" />` : ""}
+
+      ${
+        scores.length
+          ? `<div class="wire-result" aria-label="Final score">
+              <div class="wire-result-title"><span>Final</span><strong>${escapeHtml(metadata.course || "")}</strong></div>
+              ${scores
+                .map(
+                  (score, index) => `
+                    <div class="wire-score ${index === 0 ? "winner" : ""}">
+                      <span>${escapeHtml(score.name)}</span>
+                      <small>Out ${escapeHtml(score.front)} · In ${escapeHtml(score.back)} · ${escapeHtml(score.to_par)}</small>
+                      <strong>${escapeHtml(score.total)}</strong>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>`
+          : ""
+      }
+
+      <div class="wire-story-body">
+        <div class="wire-copy">
+          ${String(post.body || "")
+            .split(/\n{2,}/)
+            .map((paragraph) => paragraph.trim())
+            .filter(Boolean)
+            .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+            .join("")}
+        </div>
+        <aside class="wire-sidebar">
+          ${
+            scorecardImage
+              ? `<figure>
+                  <img src="${escapeHtml(scorecardImage)}" alt="Final 18Birdies scorecard for Charles Vokes and Arnaud Brisard" loading="lazy" decoding="async" />
+                  <figcaption>Final card · Chuck 105, Arnaud 114</figcaption>
+                </figure>`
+              : ""
+          }
+          ${
+            metadata.course_note
+              ? `<div class="wire-course-note">
+                  <span>Course notes</span>
+                  <p>${escapeHtml(metadata.course_note)}</p>
+                  ${metadata.source_url ? `<a href="${escapeHtml(metadata.source_url)}" target="_blank" rel="noreferrer">Course history</a>` : ""}
+                </div>`
+              : ""
+          }
+        </aside>
+      </div>
+    </article>
+  `;
 }
 
 function renderLeaderboard() {
@@ -867,6 +1000,7 @@ setInterval(updateCountdown, 1000);
 
 function renderAll() {
   renderSiteCopy();
+  renderWire();
   renderLeaderboard();
   renderTravel();
   renderLodging();
@@ -879,11 +1013,16 @@ function renderAll() {
 }
 
 async function init() {
-  try {
-    await loadCmsTrip();
-  } catch (error) {
-    console.warn("Using fallback trip data because CMS loading failed.", error);
+  const [cmsResult, wireResult] = await Promise.allSettled([loadCmsTrip(), loadWire()]);
+
+  if (cmsResult.status === "rejected") {
+    console.warn("Using fallback trip data because CMS loading failed.", cmsResult.reason);
     trip = normalizeTrip(fallbackTrip);
+  }
+
+  if (wireResult.status === "rejected") {
+    console.warn("The 808 Wire could not be loaded.", wireResult.reason);
+    wirePosts = fallbackWirePosts;
   }
 
   renderAll();

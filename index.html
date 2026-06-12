@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260605-guests" />
+    <link rel="stylesheet" href="./styles.css?v=20260612-wire" />
   </head>
   <body>
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -39,12 +39,12 @@
         </span>
       </a>
       <nav class="nav-links" aria-label="Sections">
-        <a href="#travel">Travel</a>
-        <a href="#lodging">Lodging</a>
+        <a href="#wire">Wire</a>
+        <a href="#leaderboard-section">Leaderboard</a>
+        <a href="#events">Schedule</a>
         <a href="#courses">Courses</a>
-        <a href="#events">Events</a>
         <a href="#attendees">Field</a>
-        <a href="#sidequests">Guests</a>
+        <a href="#lodging">Logistics</a>
       </nav>
     </header>
 
@@ -88,11 +88,57 @@
         </div>
       </section>
 
-      <section class="ticker" aria-label="Official leaderboard and field links">
+      <section id="wire" class="section wire" aria-label="The 808 Wire">
+        <div class="wire-masthead">
+          <span>News, scores &amp; matters of record</span>
+          <h2>The 808 Wire</h2>
+          <span id="wireDate">Latest dispatch</span>
+        </div>
+        <div id="wireFeed" class="wire-feed" aria-live="polite"></div>
+      </section>
+
+      <section id="leaderboard-section" class="ticker" aria-label="Official leaderboard and field links">
         <div class="ticker-heading">
           <strong>Live Leaderboard</strong>
         </div>
         <div id="leaderboard" class="leaderboard"></div>
+      </section>
+
+      <section id="events" class="section events">
+        <div class="section-head">
+          <h2>Events & Logistics</h2>
+        </div>
+        <div id="eventList" class="event-list"></div>
+      </section>
+
+      <section id="courses" class="section courses">
+        <div class="section-head">
+          <h2>Course Schedule</h2>
+        </div>
+        <div class="course-tabs" role="tablist" aria-label="Course schedule">
+          <button class="tab active" type="button" data-course="0" role="tab" aria-selected="true">Thursday</button>
+          <button class="tab" type="button" data-course="1" role="tab" aria-selected="false">Friday</button>
+          <button class="tab" type="button" data-course="2" role="tab" aria-selected="false">Saturday</button>
+        </div>
+        <div id="coursePanel" class="course-panel"></div>
+      </section>
+
+      <section id="attendees" class="section attendees">
+        <div class="section-head">
+          <h2>The Field</h2>
+        </div>
+        <div id="attendeeGrid" class="attendee-grid"></div>
+        <div class="section-head alumni-head">
+          <h2>Past Players & Alumni</h2>
+        </div>
+        <div id="alumniGrid" class="alumni-grid"></div>
+      </section>
+
+      <section id="lodging" class="section lodging">
+        <div class="section-head">
+          <h2>Where We Are Staying</h2>
+        </div>
+        <div id="lodgingGrid" class="lodging-grid"></div>
       </section>
 
       <section id="travel" class="section logistics">
@@ -111,43 +157,6 @@
             <tbody id="travelRows"></tbody>
           </table>
         </div>
-      </section>
-
-      <section id="lodging" class="section lodging">
-        <div class="section-head">
-          <h2>Where We Are Staying</h2>
-        </div>
-        <div id="lodgingGrid" class="lodging-grid"></div>
-      </section>
-
-      <section id="courses" class="section courses">
-        <div class="section-head">
-          <h2>Course Schedule</h2>
-        </div>
-        <div class="course-tabs" role="tablist" aria-label="Course schedule">
-          <button class="tab active" type="button" data-course="0" role="tab" aria-selected="true">Thursday</button>
-          <button class="tab" type="button" data-course="1" role="tab" aria-selected="false">Friday</button>
-          <button class="tab" type="button" data-course="2" role="tab" aria-selected="false">Saturday</button>
-        </div>
-        <div id="coursePanel" class="course-panel"></div>
-      </section>
-
-      <section id="events" class="section events">
-        <div class="section-head">
-          <h2>Events & Logistics</h2>
-        </div>
-        <div id="eventList" class="event-list"></div>
-      </section>
-
-      <section id="attendees" class="section attendees">
-        <div class="section-head">
-          <h2>The Field</h2>
-        </div>
-        <div id="attendeeGrid" class="attendee-grid"></div>
-        <div class="section-head alumni-head">
-          <h2>Past Players & Alumni</h2>
-        </div>
-        <div id="alumniGrid" class="alumni-grid"></div>
       </section>
 
       <section id="sidequests" class="section sidequests">
@@ -199,6 +208,6 @@
       <span>All rulings final unless loudly disputed in the group chat.</span>
     </footer>
 
-    <script src="./app.js?v=20260608-course-event-names"></script>
+    <script src="./app.js?v=20260612-wire"></script>
   </body>
 </html>

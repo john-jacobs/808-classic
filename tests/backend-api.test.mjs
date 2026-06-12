@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { onRequestGet as health } from "../functions/api/health.js";
 import { onRequestGet as tournament } from "../functions/api/tournament.js";
+import { onRequestGet as feed } from "../functions/api/feed.js";
 import { onRequestPost as createPost } from "../functions/api/posts.js";
 import { supabaseRequest } from "../functions/_lib/supabase.js";
 
@@ -143,4 +144,30 @@ test("tournament endpoint returns configured page data from Supabase", async () 
   assert.equal(body.people[0].handicap, 15.3);
   assert.equal(body.classic_attendance[0].handicap, 10);
   assert.equal(body.classic_attendance[0].score, "E");
+});
+
+test("feed endpoint returns editorial fields and match metadata", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "owner" }]);
+    if (url.includes("/posts?")) {
+      return Response.json([{
+        id: "post-1",
+        type: "dispatch",
+        headline: "Chuck Turns Back Arnaud",
+        metadata: { result: { winner: "Charles Vokes", margin: 9 } },
+        media: [{ storage_path: "./assets/wire/match.webp", sort_order: 0 }],
+      }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await feed({ request: accessRequest("https://example.com/api/feed"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.posts[0].headline, "Chuck Turns Back Arnaud");
+  assert.equal(body.posts[0].metadata.result.margin, 9);
 });
