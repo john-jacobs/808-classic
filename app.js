@@ -1,5 +1,8 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
+const POSTS_ENDPOINT = "/api/posts";
+const MEDIA_ENDPOINT = "/api/media";
+const SESSION_ENDPOINT = "/api/session";
 const CURRENT_CLASSIC_YEAR = "2026";
 
 const fallbackTrip = {
@@ -353,7 +356,16 @@ Chuck offered no reciprocal evaluation of Arnaud. Asked for comment, he first as
 
 let trip = normalizeTrip(fallbackTrip);
 let wirePosts = fallbackWirePosts;
+let session = null;
 
+const wireComposerModal = document.querySelector("#wireComposerModal");
+const wireComposer = document.querySelector("#wireComposer");
+const composerModalClose = document.querySelector("#composerModalClose");
+const composerBody = document.querySelector("#composerBody");
+const composerFile = document.querySelector("#composerFile");
+const composerPreview = document.querySelector("#composerPreview");
+const composerSubmit = document.querySelector("#composerSubmit");
+const composerError = document.querySelector("#composerError");
 const leaderboard = document.querySelector("#leaderboard");
 const wireFeed = document.querySelector("#wireFeed");
 const wireDate = document.querySelector("#wireDate");
@@ -520,6 +532,13 @@ function escapeHtml(value) {
   });
 }
 
+async function loadSession() {
+  const response = await fetch(SESSION_ENDPOINT, { cache: "no-store" });
+  if (!response.ok) return;
+  const data = await response.json();
+  session = data.member || null;
+}
+
 async function loadCmsTrip() {
   const response = await fetch(CMS_ENDPOINT, { cache: "no-store" });
   if (!response.ok) throw new Error(`CMS request failed: ${response.status}`);
@@ -601,13 +620,7 @@ function formatWireDate(value) {
   }).format(new Date(value));
 }
 
-function renderWire() {
-  const post = wirePosts[0];
-  if (!post) {
-    wireFeed.innerHTML = `<p class="wire-empty">No dispatches have cleared the desk.</p>`;
-    return;
-  }
-
+function renderFeaturedStory(post) {
   const metadata = post.metadata || {};
   const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
   const featureImage = media[0]?.storage_path;
@@ -616,7 +629,8 @@ function renderWire() {
   const published = formatWireDate(post.published_at || post.created_at);
 
   wireDate.textContent = published;
-  wireFeed.innerHTML = `
+
+  return `
     <article class="wire-story">
       <header class="wire-story-head">
         <p class="wire-label">${escapeHtml(post.type === "dispatch" ? "Match report" : post.type || "Dispatch")}</p>
@@ -625,58 +639,90 @@ function renderWire() {
         <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
       </header>
 
-      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="Arnaud Brisard and Charles Vokes at Macktown Golf Course" loading="lazy" decoding="async" />` : ""}
+      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="" loading="lazy" decoding="async" />` : ""}
 
-      ${
-        scores.length
-          ? `<div class="wire-result" aria-label="Final score">
-              <div class="wire-result-title"><span>Final</span><strong>${escapeHtml(metadata.course || "")}</strong></div>
-              ${scores
-                .map(
-                  (score, index) => `
-                    <div class="wire-score ${index === 0 ? "winner" : ""}">
-                      <span>${escapeHtml(score.name)}</span>
-                      <small>Out ${escapeHtml(score.front)} · In ${escapeHtml(score.back)} · ${escapeHtml(score.to_par)}</small>
-                      <strong>${escapeHtml(score.total)}</strong>
-                    </div>
-                  `,
-                )
-                .join("")}
-            </div>`
-          : ""
-      }
+      ${scores.length ? `
+        <div class="wire-result" aria-label="Final score">
+          <div class="wire-result-title"><span>Final</span><strong>${escapeHtml(metadata.course || "")}</strong></div>
+          ${scores.map((score, index) => `
+            <div class="wire-score ${index === 0 ? "winner" : ""}">
+              <span>${escapeHtml(score.name)}</span>
+              <small>Out ${escapeHtml(score.front)} · In ${escapeHtml(score.back)} · ${escapeHtml(score.to_par)}</small>
+              <strong>${escapeHtml(score.total)}</strong>
+            </div>
+          `).join("")}
+        </div>` : ""}
 
       <div class="wire-story-body">
         <div class="wire-copy">
-          ${String(post.body || "")
-            .split(/\n{2,}/)
-            .map((paragraph) => paragraph.trim())
-            .filter(Boolean)
-            .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-            .join("")}
+          ${String(post.body || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${escapeHtml(p)}</p>`).join("")}
         </div>
         <aside class="wire-sidebar">
-          ${
-            scorecardImage
-              ? `<figure>
-                  <img src="${escapeHtml(scorecardImage)}" alt="Final 18Birdies scorecard for Charles Vokes and Arnaud Brisard" loading="lazy" decoding="async" />
-                  <figcaption>Final card · Chuck 105, Arnaud 114</figcaption>
-                </figure>`
-              : ""
-          }
-          ${
-            metadata.course_note
-              ? `<div class="wire-course-note">
-                  <span>Course notes</span>
-                  <p>${escapeHtml(metadata.course_note)}</p>
-                  ${metadata.source_url ? `<a href="${escapeHtml(metadata.source_url)}" target="_blank" rel="noreferrer">Course history</a>` : ""}
-                </div>`
-              : ""
-          }
+          ${scorecardImage ? `
+            <figure>
+              <img src="${escapeHtml(scorecardImage)}" alt="" loading="lazy" decoding="async" />
+              <figcaption>Final card · Chuck 105, Arnaud 114</figcaption>
+            </figure>` : ""}
+          ${metadata.course_note ? `
+            <div class="wire-course-note">
+              <span>Course notes</span>
+              <p>${escapeHtml(metadata.course_note)}</p>
+              ${metadata.source_url ? `<a href="${escapeHtml(metadata.source_url)}" target="_blank" rel="noreferrer">Course history</a>` : ""}
+            </div>` : ""}
         </aside>
       </div>
     </article>
   `;
+}
+
+function renderDispatchItem(post) {
+  const published = formatWireDate(post.published_at || post.created_at);
+  const byline = post.byline || post.author?.display_name || "808 Wire Staff";
+  const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+  const thumb = media[0]?.storage_path;
+  const excerpt = String(post.body || "").replace(/\n+/g, " ").trim();
+
+  return `
+    <article class="wire-dispatch-item">
+      <div>
+        <p class="wire-dispatch-meta">${escapeHtml(byline)}${post.location ? ` · ${escapeHtml(post.location)}` : ""}${published ? ` · ${escapeHtml(published)}` : ""}</p>
+        ${post.headline ? `<p class="wire-dispatch-meta" style="color:var(--navy);font-size:0.85rem;margin-top:2px">${escapeHtml(post.headline)}</p>` : ""}
+        <p class="wire-dispatch-body">${escapeHtml(excerpt)}</p>
+      </div>
+      ${thumb ? `<img class="wire-dispatch-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" decoding="async" />` : ""}
+    </article>
+  `;
+}
+
+function renderDispatches(posts) {
+  const postBtnHtml = session
+    ? `<button type="button" class="wire-post-btn" id="postToWireBtn">+ Post to Wire</button>`
+    : "";
+
+  return `
+    <div class="wire-dispatches">
+      <div class="wire-dispatches-head">
+        <span>Dispatches</span>
+        ${postBtnHtml}
+      </div>
+      ${posts.length
+        ? `<div class="wire-dispatch-list">${posts.map(renderDispatchItem).join("")}</div>`
+        : `<p class="wire-dispatch-empty">More dispatches will appear here during the trip.</p>`}
+    </div>
+  `;
+}
+
+function renderWire() {
+  const featured = wirePosts[0];
+  const dispatches = wirePosts.slice(1);
+
+  if (!featured) {
+    wireDate.textContent = "Latest dispatch";
+    wireFeed.innerHTML = renderDispatches([]);
+    return;
+  }
+
+  wireFeed.innerHTML = renderFeaturedStory(featured) + renderDispatches(dispatches);
 }
 
 function renderLeaderboard() {
@@ -940,6 +986,134 @@ async function copyText(text) {
   textArea.remove();
 }
 
+// Composer modal
+function openComposerModal() {
+  composerClearError();
+  wireComposerModal.showModal();
+}
+
+function closeComposerModal() {
+  wireComposerModal.close();
+}
+
+if (wireComposerModal) {
+  composerModalClose.addEventListener("click", closeComposerModal);
+  // Close on backdrop click
+  wireComposerModal.addEventListener("click", (event) => {
+    if (event.target === wireComposerModal) closeComposerModal();
+  });
+}
+
+// Open modal from the dynamically-rendered "Post to Wire" button
+wireFeed.addEventListener("click", (event) => {
+  if (event.target.closest("#postToWireBtn")) openComposerModal();
+});
+
+// Composer form
+function composerSetError(message) {
+  composerError.textContent = message;
+  composerError.hidden = false;
+}
+
+function composerClearError() {
+  composerError.textContent = "";
+  composerError.hidden = true;
+}
+
+function composerSetPreview(file) {
+  if (!file) {
+    composerPreview.hidden = true;
+    composerPreview.innerHTML = "";
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  const isVideo = file.type.startsWith("video/");
+  composerPreview.hidden = false;
+  composerPreview.innerHTML = `
+    ${isVideo
+      ? `<video src="${url}" muted playsinline style="flex-shrink:0;width:48px;height:48px;object-fit:cover;border:1px solid var(--line);border-radius:2px"></video>`
+      : `<img src="${url}" alt="Preview" />`}
+    <span class="composer-preview-name">${escapeHtml(file.name)}</span>
+    <button type="button" class="composer-preview-remove" aria-label="Remove attachment">✕</button>
+  `;
+}
+
+async function submitPost(body, file) {
+  const postResponse = await fetch(POSTS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "dispatch", body }),
+    cache: "no-store",
+  });
+
+  if (!postResponse.ok) {
+    const data = await postResponse.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to post (${postResponse.status})`);
+  }
+
+  const { post } = await postResponse.json();
+
+  if (file && post?.id) {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("postId", post.id);
+    const mediaResponse = await fetch(MEDIA_ENDPOINT, { method: "POST", body: form, cache: "no-store" });
+    if (!mediaResponse.ok) {
+      const data = await mediaResponse.json().catch(() => ({}));
+      console.warn("Media upload failed:", data.error || mediaResponse.status);
+    }
+  }
+
+  return post;
+}
+
+if (wireComposer) {
+  composerFile.addEventListener("change", () => {
+    composerSetPreview(composerFile.files[0] || null);
+    composerClearError();
+  });
+
+  composerPreview.addEventListener("click", (event) => {
+    if (event.target.closest(".composer-preview-remove")) {
+      composerFile.value = "";
+      composerSetPreview(null);
+    }
+  });
+
+  wireComposer.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    composerClearError();
+
+    const body = composerBody.value.trim();
+    const file = composerFile.files[0] || null;
+
+    if (!body && !file) {
+      composerSetError("Add some text or a photo/video before posting.");
+      return;
+    }
+
+    composerSubmit.disabled = true;
+    composerSubmit.textContent = "Posting…";
+    composerBody.disabled = true;
+
+    try {
+      await submitPost(body, file);
+      composerBody.value = "";
+      composerFile.value = "";
+      composerSetPreview(null);
+      closeComposerModal();
+      await loadWire();
+      renderWire();
+    } catch (error) {
+      composerSetError(error.message || "Something went wrong. Try again.");
+    } finally {
+      composerSubmit.disabled = false;
+      composerSubmit.textContent = "Post to Wire";
+      composerBody.disabled = false;
+    }
+  });
+}
+
 navLinks.forEach((link) => link.addEventListener("click", () => setActiveNav(link.getAttribute("href").slice(1))));
 document.addEventListener("scroll", updateActiveNav, { passive: true });
 window.addEventListener("resize", updateActiveNav);
@@ -1013,7 +1187,11 @@ function renderAll() {
 }
 
 async function init() {
-  const [cmsResult, wireResult] = await Promise.allSettled([loadCmsTrip(), loadWire()]);
+  const [cmsResult, wireResult, sessionResult] = await Promise.allSettled([
+    loadCmsTrip(),
+    loadWire(),
+    loadSession(),
+  ]);
 
   if (cmsResult.status === "rejected") {
     console.warn("Using fallback trip data because CMS loading failed.", cmsResult.reason);
@@ -1024,6 +1202,12 @@ async function init() {
     console.warn("The 808 Wire could not be loaded.", wireResult.reason);
     wirePosts = fallbackWirePosts;
   }
+
+  if (sessionResult.status === "rejected") {
+    console.warn("Session could not be loaded.", sessionResult.reason);
+  }
+
+  // session drives whether the "Post to Wire" button renders (handled in renderWire)
 
   renderAll();
 }
