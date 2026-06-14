@@ -358,3 +358,64 @@ test("feed endpoint returns editorial fields and match metadata", async () => {
   assert.equal(body.posts[0].headline, "Chuck Turns Back Arnaud");
   assert.equal(body.posts[0].metadata.result.margin, 9);
 });
+
+test("feed endpoint resolves signed URLs for Supabase storage paths", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) {
+      return Response.json([{
+        id: "post-1",
+        type: "dispatch",
+        headline: "Field dispatch",
+        metadata: {},
+        media: [{ storage_path: "trip-1/member-1/photo.jpg", mime_type: "image/jpeg", sort_order: 0 }],
+      }]);
+    }
+    if (url.includes("/storage/v1/object/sign/")) {
+      return Response.json({ signedURL: "/object/sign/trip-media/trip-1/member-1/photo.jpg?token=xyz" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await feed({ request: accessRequest("https://example.com/api/feed"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.ok(body.posts[0].media[0].url?.includes("token=xyz"), "should include a signed URL");
+  assert.equal(body.posts[0].media[0].storage_path, "trip-1/member-1/photo.jpg", "should preserve original storage_path");
+});
+
+test("feed endpoint skips signing for bundled local asset paths", async () => {
+  let signCalled = false;
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) {
+      return Response.json([{
+        id: "post-2",
+        type: "dispatch",
+        headline: "Classic recap",
+        metadata: {},
+        media: [{ storage_path: "./assets/wire/arnaud-chuck-macktown.webp", sort_order: 0 }],
+      }]);
+    }
+    if (url.includes("/storage/v1/object/sign/")) {
+      signCalled = true;
+      return Response.json({ signedURL: "/should/not/be/called?token=oops" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await feed({ request: accessRequest("https://example.com/api/feed"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(signCalled, false, "should not call Storage sign API for local asset paths");
+  assert.equal(body.posts[0].media[0].url, undefined, "local asset should not have a url property");
+  assert.equal(body.posts[0].media[0].storage_path, "./assets/wire/arnaud-chuck-macktown.webp");
+});

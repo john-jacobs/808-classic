@@ -623,8 +623,10 @@ function formatWireDate(value) {
 function renderFeaturedStory(post) {
   const metadata = post.metadata || {};
   const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
-  const featureImage = media[0]?.storage_path;
-  const scorecardImage = media[1]?.storage_path;
+  // Prefer the signed URL resolved server-side; fall back to storage_path for bundled assets.
+  const featureImage = media[0]?.url || media[0]?.storage_path;
+  const scorecardImage = media[1]?.url || media[1]?.storage_path;
+  const featureIsVideo = (media[0]?.mime_type || "").startsWith("video/");
   const scores = metadata.scorecard || [];
   const published = formatWireDate(post.published_at || post.created_at);
 
@@ -639,7 +641,11 @@ function renderFeaturedStory(post) {
         <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
       </header>
 
-      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="" loading="lazy" decoding="async" />` : ""}
+      ${featureImage
+        ? featureIsVideo
+          ? `<video class="wire-feature-image" src="${escapeHtml(featureImage)}" controls playsinline preload="metadata"></video>`
+          : `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="" loading="lazy" decoding="async" />`
+        : ""}
 
       ${scores.length ? `
         <div class="wire-result" aria-label="Final score">
@@ -679,7 +685,8 @@ function renderDispatchItem(post) {
   const published = formatWireDate(post.published_at || post.created_at);
   const byline = post.byline || post.author?.display_name || "808 Wire Staff";
   const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
-  const thumb = media[0]?.storage_path;
+  const thumb = media[0]?.url || media[0]?.storage_path;
+  const thumbIsVideo = (media[0]?.mime_type || "").startsWith("video/");
   const excerpt = String(post.body || "").replace(/\n+/g, " ").trim();
 
   return `
@@ -689,7 +696,11 @@ function renderDispatchItem(post) {
         ${post.headline ? `<p class="wire-dispatch-meta" style="color:var(--navy);font-size:0.85rem;margin-top:2px">${escapeHtml(post.headline)}</p>` : ""}
         <p class="wire-dispatch-body">${escapeHtml(excerpt)}</p>
       </div>
-      ${thumb ? `<img class="wire-dispatch-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" decoding="async" />` : ""}
+      ${thumb
+        ? thumbIsVideo
+          ? `<video class="wire-dispatch-thumb" src="${escapeHtml(thumb)}" muted playsinline preload="none"></video>`
+          : `<img class="wire-dispatch-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" decoding="async" />`
+        : ""}
     </article>
   `;
 }
@@ -1060,7 +1071,7 @@ async function submitPost(body, file) {
     const mediaResponse = await fetch(MEDIA_ENDPOINT, { method: "POST", body: form, cache: "no-store" });
     if (!mediaResponse.ok) {
       const data = await mediaResponse.json().catch(() => ({}));
-      console.warn("Media upload failed:", data.error || mediaResponse.status);
+      throw new Error(data.error || `Attachment upload failed (${mediaResponse.status}). Your post was saved — try again without the attachment.`);
     }
   }
 
