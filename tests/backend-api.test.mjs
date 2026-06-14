@@ -5,6 +5,13 @@ import { onRequestGet as health } from "../functions/api/health.js";
 import { onRequestGet as tournament } from "../functions/api/tournament.js";
 import { onRequestGet as feed } from "../functions/api/feed.js";
 import { onRequestPost as createPost } from "../functions/api/posts.js";
+import {
+  onRequestGet as listMembers,
+  onRequestPost as addMember,
+  onRequestPatch as patchMember,
+  onRequestDelete as deleteMember,
+} from "../functions/api/members.js";
+import { onRequestGet as getProfile, onRequestPatch as patchProfile } from "../functions/api/profile.js";
 import { supabaseRequest } from "../functions/_lib/supabase.js";
 
 const env = {
@@ -170,4 +177,399 @@ test("feed endpoint returns editorial fields and match metadata", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.posts[0].headline, "Chuck Turns Back Arnaud");
   assert.equal(body.posts[0].metadata.result.margin, 9);
+});
+
+// ── GET /api/members ──────────────────────────────────────────────────────────
+
+test("GET /api/members as member returns only themselves", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await listMembers({ request: accessRequest("https://example.com/api/members"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.members.length, 1);
+  assert.equal(body.members[0].email, "john@example.com");
+  assert.equal(body.members[0].role, "member");
+});
+
+test("GET /api/members as admin returns all group members with roles", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?select=id,email") && url.includes("id=in.")) {
+      return Response.json([
+        { id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null },
+        { id: "member-2", email: "evan@example.com", display_name: "Evan", avatar_url: null },
+      ]);
+    }
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?select=member_id,role")) {
+      return Response.json([
+        { member_id: "member-1", role: "admin" },
+        { member_id: "member-2", role: "member" },
+      ]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "admin" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await listMembers({ request: accessRequest("https://example.com/api/members"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.members.length, 2);
+  assert.equal(body.members.find((m) => m.email === "evan@example.com")?.role, "member");
+});
+
+// ── POST /api/members ─────────────────────────────────────────────────────────
+
+test("POST /api/members as admin adds a new member", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("/members?select=id,email")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/members?") && options.method !== "POST") {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?") && !url.includes("select=member_id")) {
+      return Response.json([{ role: "admin" }]);
+    }
+    if (url.includes("/members?select=id") && options?.method === "POST") {
+      return Response.json([{ id: "new-member-id" }]);
+    }
+    if (url.includes("/group_memberships?on_conflict=")) {
+      return new Response(null, { status: 201 });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await addMember({
+    request: accessRequest("https://example.com/api/members", {
+      method: "POST",
+      body: JSON.stringify({ email: "newguy@example.com", display_name: "New Guy", role: "member" }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.equal(body.member.email, "newguy@example.com");
+  assert.equal(body.member.role, "member");
+});
+
+test("POST /api/members as non-admin is forbidden", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await addMember({
+    request: accessRequest("https://example.com/api/members", {
+      method: "POST",
+      body: JSON.stringify({ email: "hack@example.com", display_name: "Hacker", role: "owner" }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 403);
+});
+
+// ── PATCH /api/members ────────────────────────────────────────────────────────
+
+test("PATCH /api/members as admin updates another member's role", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?select=role")) return Response.json([{ role: "admin" }]);
+    if (url.includes("/group_memberships?member_id=") && options?.method === "PATCH") {
+      return new Response(null, { status: 204 });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await patchMember({
+    request: accessRequest("https://example.com/api/members?id=member-2", {
+      method: "PATCH",
+      body: JSON.stringify({ role: "member" }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true });
+  const roleCall = calls.find((c) => c.url.includes("/group_memberships?member_id=") && c.options?.method === "PATCH");
+  assert.ok(roleCall, "should have patched group_memberships");
+  assert.equal(JSON.parse(roleCall.options.body).role, "member");
+});
+
+test("PATCH /api/members as member can update own display_name but not role", async () => {
+  const memberCalls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?") && options?.method === "PATCH") memberCalls.push(options);
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response(null, { status: 204 });
+  };
+
+  const response = await patchMember({
+    request: accessRequest("https://example.com/api/members", {
+      method: "PATCH",
+      body: JSON.stringify({ display_name: "John Updated", role: "admin" }),
+    }),
+    env,
+  });
+
+  // role update should be blocked for non-admin
+  assert.equal(response.status, 403);
+});
+
+test("PATCH /api/members as member updates own display_name when no role change requested", async () => {
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response(null, { status: 204 });
+  };
+
+  const response = await patchMember({
+    request: accessRequest("https://example.com/api/members", {
+      method: "PATCH",
+      body: JSON.stringify({ display_name: "John Updated" }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true });
+});
+
+// ── DELETE /api/members ───────────────────────────────────────────────────────
+
+test("DELETE /api/members as owner removes group membership", async () => {
+  let deleted = false;
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?select=role")) return Response.json([{ role: "owner" }]);
+    if (url.includes("/group_memberships?member_id=") && options?.method === "DELETE") {
+      deleted = true;
+      return new Response(null, { status: 204 });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await deleteMember({
+    request: accessRequest("https://example.com/api/members?id=member-2", { method: "DELETE" }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(deleted, true);
+});
+
+test("DELETE /api/members as admin is forbidden", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "admin" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await deleteMember({
+    request: accessRequest("https://example.com/api/members?id=member-2", { method: "DELETE" }),
+    env,
+  });
+
+  assert.equal(response.status, 403);
+});
+
+// ── GET /api/profile ──────────────────────────────────────────────────────────
+
+test("GET /api/profile returns member and linked player record", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/people?member_id=")) {
+      return Response.json([{ slug: "john-jacobs", display_name: "John", handicap: 10, bio: "The Favorite" }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await getProfile({ request: accessRequest("https://example.com/api/profile"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.member.email, "john@example.com");
+  assert.equal(body.player.slug, "john-jacobs");
+  assert.equal(body.player.handicap, 10);
+});
+
+test("GET /api/profile falls back to display_name match when no member_id FK", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/people?member_id=")) {
+      // Simulate column not existing → Supabase returns 400
+      return new Response(JSON.stringify({ message: "column people.member_id does not exist" }), { status: 400 });
+    }
+    if (url.includes("/people?display_name=")) {
+      return Response.json([{ slug: "john-jacobs", display_name: "John", handicap: 10 }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await getProfile({ request: accessRequest("https://example.com/api/profile"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.player?.slug, "john-jacobs");
+});
+
+test("GET /api/profile returns null player when no match found", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/people?")) return Response.json([]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await getProfile({ request: accessRequest("https://example.com/api/profile"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.player, null);
+});
+
+// ── PATCH /api/profile ────────────────────────────────────────────────────────
+
+test("PATCH /api/profile updates display_name on the member record", async () => {
+  const memberPatchCalls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?id=eq.") && options?.method === "PATCH") {
+      memberPatchCalls.push(JSON.parse(options.body));
+      return new Response(null, { status: 204 });
+    }
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await patchProfile({
+    request: accessRequest("https://example.com/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ display_name: "John J." }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(memberPatchCalls.length, 1);
+  assert.equal(memberPatchCalls[0].display_name, "John J.");
+});
+
+test("PATCH /api/profile updates bio and handicap on the people record", async () => {
+  const peoplePatchCalls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/people?member_id=")) {
+      return Response.json([{ slug: "john-jacobs", display_name: "John", handicap: 10 }]);
+    }
+    if (url.includes("/people?slug=eq.") && options?.method === "PATCH") {
+      peoplePatchCalls.push(JSON.parse(options.body));
+      return Response.json([{ slug: "john-jacobs", display_name: "John", handicap: 9, bio: "Updated bio" }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await patchProfile({
+    request: accessRequest("https://example.com/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ bio: "Updated bio", handicap: 9 }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.player.handicap, 9);
+  assert.equal(peoplePatchCalls[0].bio, "Updated bio");
+  assert.equal(peoplePatchCalls[0].handicap, 9);
+});
+
+test("PATCH /api/profile rejects invalid handicap", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await patchProfile({
+    request: accessRequest("https://example.com/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ handicap: 99 }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.ok(body.error.includes("handicap"));
+});
+
+test("PATCH /api/profile with no linked player still saves member fields", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/people?")) return Response.json([]);
+    return new Response(null, { status: 204 });
+  };
+
+  const response = await patchProfile({
+    request: accessRequest("https://example.com/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ display_name: "John J.", bio: "This won't save without a people record" }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.player, null);
 });

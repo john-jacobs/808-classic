@@ -1293,6 +1293,345 @@ td small {
   color: rgba(255, 255, 255, 0.72);
 }
 
+/* ── Modal base ──────────────────────────────────────────────────────────── */
+
+.wire-composer-modal {
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 0;
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.32);
+  overflow-y: auto;
+}
+
+.wire-composer-modal::backdrop {
+  background: rgba(19, 41, 75, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.members-modal {
+  width: min(520px, calc(100% - 32px));
+}
+
+.modal-inner {
+  position: relative;
+  padding: 32px 28px 28px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--ink);
+  background: var(--fairway);
+}
+
+.wire-composer-label {
+  margin: 0 0 18px;
+  color: var(--orange-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.composer-error {
+  margin: 0;
+  padding: 10px 14px;
+  color: #b00;
+  background: #fff0f0;
+  border: 1px solid #fcc;
+  font-size: 0.86rem;
+}
+
+.composer-submit {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 18px;
+  color: #fff;
+  background: var(--navy);
+  border: 0;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: background 140ms ease;
+}
+
+.composer-submit:hover:not(:disabled) {
+  background: var(--orange);
+}
+
+.composer-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Header profile widget ───────────────────────────────────────────────── */
+
+.header-profile {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: #fff;
+  background: var(--orange);
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  transition: background 140ms ease;
+}
+
+.profile-btn:hover {
+  background: var(--orange-dark);
+}
+
+.profile-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 200;
+  width: 252px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.profile-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: #fff;
+  background: var(--navy);
+}
+
+.profile-panel-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  color: #fff;
+  background: var(--orange);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.profile-panel-info strong {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.profile-panel-info small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.profile-panel-email {
+  margin: 0;
+  padding: 9px 16px;
+  color: var(--muted);
+  background: var(--fairway);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-panel-actions {
+  display: grid;
+}
+
+.profile-panel-btn {
+  padding: 12px 16px;
+  color: var(--navy);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-align: left;
+  text-transform: uppercase;
+  transition: background 120ms ease;
+}
+
+.profile-panel-btn:hover {
+  background: var(--fairway);
+}
+
+.profile-panel-btn--admin {
+  color: var(--orange-dark);
+}
+
+/* ── Profile form ────────────────────────────────────────────────────────── */
+
+.profile-field-group {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.profile-field-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.profile-field-input {
+  width: 100%;
+  padding: 9px 12px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 0.96rem;
+}
+
+.profile-field-input:focus {
+  outline: 2px solid var(--orange);
+  outline-offset: 1px;
+}
+
+.profile-field-input--short {
+  max-width: 110px;
+}
+
+textarea.profile-field-input {
+  resize: vertical;
+  min-height: 88px;
+}
+
+select.profile-field-input {
+  appearance: auto;
+}
+
+.profile-form-footer {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── Members management ──────────────────────────────────────────────────── */
+
+.members-list {
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.member-row:last-child {
+  border-bottom: 0;
+}
+
+.member-row-name {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-row-email {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-role-select {
+  padding: 4px 6px;
+  color: var(--navy);
+  background: var(--fairway);
+  border: 1px solid var(--line);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.member-role-badge {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.member-remove-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.member-remove-btn:hover {
+  color: #fff;
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+.members-add {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.members-add-label {
+  margin: 0 0 14px;
+  color: var(--orange-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 @media (max-width: 860px) {
   html {
     scroll-padding-top: 118px;
@@ -1310,6 +1649,12 @@ td small {
 
   .nav-links {
     justify-content: flex-start;
+  }
+
+  .header-profile {
+    position: absolute;
+    top: 16px;
+    right: clamp(18px, 4vw, 56px);
   }
 
   .ticker,
