@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260612-wire" />
+    <link rel="stylesheet" href="./styles.css?v=20260613-profile" />
   </head>
   <body>
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -46,6 +46,26 @@
         <a href="#attendees">Field</a>
         <a href="#lodging">Logistics</a>
       </nav>
+
+      <div class="header-profile" id="headerProfile" hidden>
+        <button type="button" class="profile-btn" id="profileBtn" aria-label="My profile" aria-expanded="false">
+          <span id="profileBtnLabel"></span>
+        </button>
+        <div class="profile-panel" id="profilePanel" hidden>
+          <div class="profile-panel-head">
+            <span class="profile-panel-avatar" id="profilePanelAvatar"></span>
+            <div class="profile-panel-info">
+              <strong id="profilePanelName"></strong>
+              <small id="profilePanelRole"></small>
+            </div>
+          </div>
+          <p class="profile-panel-email" id="profilePanelEmail"></p>
+          <div class="profile-panel-actions">
+            <button type="button" class="profile-panel-btn" id="openEditProfileBtn">Edit Profile</button>
+            <button type="button" class="profile-panel-btn profile-panel-btn--admin" id="openMembersBtn" hidden>Manage Members</button>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -198,6 +218,79 @@
       </section>
     </main>
 
+    <!-- Profile edit modal -->
+    <dialog id="profileModal" class="wire-composer-modal" aria-label="Edit your profile">
+      <div class="modal-inner">
+        <button type="button" class="modal-close" id="profileModalClose" aria-label="Close">×</button>
+        <p class="wire-composer-label">Edit your profile</p>
+        <form id="profileForm" novalidate>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfDisplayName">Display name</label>
+            <input class="profile-field-input" id="pfDisplayName" type="text" maxlength="100" autocomplete="name" />
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfCity">City</label>
+            <input class="profile-field-input" id="pfCity" type="text" maxlength="100" />
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfHandicap">Handicap index (0–54)</label>
+            <input class="profile-field-input profile-field-input--short" id="pfHandicap" type="number" min="0" max="54" step="0.1" />
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfQuote">Quote</label>
+            <input class="profile-field-input" id="pfQuote" type="text" maxlength="300" placeholder="Your go-to line" />
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfBio">Bio</label>
+            <textarea class="profile-field-input" id="pfBio" maxlength="5000" rows="4" placeholder="A few sentences about your game"></textarea>
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfStrength">Strength</label>
+            <input class="profile-field-input" id="pfStrength" type="text" maxlength="200" />
+          </div>
+          <div class="profile-field-group">
+            <label class="profile-field-label" for="pfWeakness">Weakness</label>
+            <input class="profile-field-input" id="pfWeakness" type="text" maxlength="200" />
+          </div>
+          <div class="profile-form-footer">
+            <p id="profileFormError" class="composer-error" hidden></p>
+            <button type="submit" id="profileFormSubmit" class="composer-submit">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- Member management modal (admin/owner only) -->
+    <dialog id="membersModal" class="wire-composer-modal members-modal" aria-label="Manage members">
+      <div class="modal-inner">
+        <button type="button" class="modal-close" id="membersModalClose" aria-label="Close">×</button>
+        <p class="wire-composer-label">Manage Members</p>
+        <div id="membersList" class="members-list"></div>
+        <div class="members-add">
+          <p class="members-add-label">Add a member</p>
+          <form id="addMemberForm" novalidate>
+            <div class="profile-field-group">
+              <label class="profile-field-label" for="amEmail">Email</label>
+              <input class="profile-field-input" id="amEmail" type="email" autocomplete="off" />
+            </div>
+            <div class="profile-field-group">
+              <label class="profile-field-label" for="amName">Display name</label>
+              <input class="profile-field-input" id="amName" type="text" maxlength="100" />
+            </div>
+            <div class="profile-field-group">
+              <label class="profile-field-label" for="amRole">Role</label>
+              <select class="profile-field-input" id="amRole">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <p id="addMemberError" class="composer-error" hidden></p>
+            <button type="submit" id="addMemberSubmit" class="composer-submit" style="margin-top:4px">Add Member</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
     <dialog id="bioDialog" class="bio-dialog">
       <button class="dialog-close" type="button" aria-label="Close player dossier">×</button>
       <div id="bioDialogContent"></div>
@@ -208,6 +301,6 @@
       <span>All rulings final unless loudly disputed in the group chat.</span>
     </footer>
 
-    <script src="./app.js?v=20260612-wire"></script>
+    <script src="./app.js?v=20260613-profile"></script>
   </body>
 </html>

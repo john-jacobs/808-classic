@@ -1,5 +1,8 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
+const SESSION_ENDPOINT = "/api/session";
+const PROFILE_ENDPOINT = "/api/profile";
+const MEMBERS_ENDPOINT = "/api/members";
 const CURRENT_CLASSIC_YEAR = "2026";
 
 const fallbackTrip = {
@@ -353,6 +356,43 @@ Chuck offered no reciprocal evaluation of Arnaud. Asked for comment, he first as
 
 let trip = normalizeTrip(fallbackTrip);
 let wirePosts = fallbackWirePosts;
+let session = null;
+let profile = null;
+
+// Profile widget
+const headerProfile = document.querySelector("#headerProfile");
+const profileBtn = document.querySelector("#profileBtn");
+const profileBtnLabel = document.querySelector("#profileBtnLabel");
+const profilePanel = document.querySelector("#profilePanel");
+const profilePanelAvatar = document.querySelector("#profilePanelAvatar");
+const profilePanelName = document.querySelector("#profilePanelName");
+const profilePanelRole = document.querySelector("#profilePanelRole");
+const profilePanelEmail = document.querySelector("#profilePanelEmail");
+const openEditProfileBtn = document.querySelector("#openEditProfileBtn");
+const openMembersBtn = document.querySelector("#openMembersBtn");
+// Profile edit modal
+const profileModal = document.querySelector("#profileModal");
+const profileModalClose = document.querySelector("#profileModalClose");
+const profileForm = document.querySelector("#profileForm");
+const pfDisplayName = document.querySelector("#pfDisplayName");
+const pfCity = document.querySelector("#pfCity");
+const pfHandicap = document.querySelector("#pfHandicap");
+const pfQuote = document.querySelector("#pfQuote");
+const pfBio = document.querySelector("#pfBio");
+const pfStrength = document.querySelector("#pfStrength");
+const pfWeakness = document.querySelector("#pfWeakness");
+const profileFormError = document.querySelector("#profileFormError");
+const profileFormSubmit = document.querySelector("#profileFormSubmit");
+// Members modal
+const membersModal = document.querySelector("#membersModal");
+const membersModalClose = document.querySelector("#membersModalClose");
+const membersList = document.querySelector("#membersList");
+const addMemberForm = document.querySelector("#addMemberForm");
+const amEmail = document.querySelector("#amEmail");
+const amName = document.querySelector("#amName");
+const amRole = document.querySelector("#amRole");
+const addMemberError = document.querySelector("#addMemberError");
+const addMemberSubmit = document.querySelector("#addMemberSubmit");
 
 const leaderboard = document.querySelector("#leaderboard");
 const wireFeed = document.querySelector("#wireFeed");
@@ -533,6 +573,254 @@ async function loadWire() {
   const data = await response.json();
   wirePosts = data.posts || [];
 }
+
+async function loadSession() {
+  const response = await fetch(SESSION_ENDPOINT, { cache: "no-store" });
+  if (!response.ok) return;
+  const data = await response.json();
+  session = data.member || null;
+}
+
+async function loadProfile() {
+  const response = await fetch(PROFILE_ENDPOINT, { cache: "no-store" });
+  if (!response.ok) return;
+  profile = await response.json();
+}
+
+// ── Profile header widget ─────────────────────────────────────────────────────
+
+function renderProfileWidget() {
+  if (!session) { headerProfile.hidden = true; return; }
+  headerProfile.hidden = false;
+  const label = initials(session.display_name);
+  profileBtnLabel.textContent = label;
+  profilePanelAvatar.textContent = label;
+  profilePanelName.textContent = session.display_name;
+  profilePanelRole.textContent = session.role;
+  profilePanelEmail.textContent = session.email;
+  openMembersBtn.hidden = !["owner", "admin"].includes(session.role);
+}
+
+function openProfilePanel() {
+  profilePanel.hidden = false;
+  profileBtn.setAttribute("aria-expanded", "true");
+}
+
+function closeProfilePanel() {
+  profilePanel.hidden = true;
+  profileBtn.setAttribute("aria-expanded", "false");
+}
+
+profileBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  profilePanel.hidden ? openProfilePanel() : closeProfilePanel();
+});
+
+document.addEventListener("click", (e) => {
+  if (!profilePanel.hidden && !headerProfile.contains(e.target)) closeProfilePanel();
+});
+
+// ── Profile edit modal ────────────────────────────────────────────────────────
+
+function openProfileModal() {
+  closeProfilePanel();
+  // Pre-fill from current data
+  pfDisplayName.value = profile?.member?.display_name || session?.display_name || "";
+  pfCity.value = profile?.player?.city || "";
+  pfHandicap.value = profile?.player?.handicap ?? "";
+  pfQuote.value = profile?.player?.quote || "";
+  pfBio.value = profile?.player?.bio || "";
+  pfStrength.value = profile?.player?.strength || "";
+  pfWeakness.value = profile?.player?.weakness || "";
+  profileFormError.hidden = true;
+  profileModal.showModal();
+}
+
+function closeProfileModal() { profileModal.close(); }
+
+openEditProfileBtn.addEventListener("click", openProfileModal);
+profileModalClose.addEventListener("click", closeProfileModal);
+profileModal.addEventListener("click", (e) => { if (e.target === profileModal) closeProfileModal(); });
+
+profileForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  profileFormError.hidden = true;
+  profileFormSubmit.disabled = true;
+  profileFormSubmit.textContent = "Saving…";
+
+  const body = {
+    display_name: pfDisplayName.value.trim(),
+    city: pfCity.value.trim(),
+    quote: pfQuote.value.trim(),
+    bio: pfBio.value.trim(),
+    strength: pfStrength.value.trim(),
+    weakness: pfWeakness.value.trim(),
+  };
+  const hcp = pfHandicap.value.trim();
+  if (hcp !== "") body.handicap = Number(hcp);
+
+  try {
+    const response = await fetch(PROFILE_ENDPOINT, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || `Failed to save (${response.status})`);
+    }
+    // Refresh profile state and update the widget with new display_name
+    await loadProfile();
+    if (session && body.display_name) session.display_name = body.display_name;
+    renderProfileWidget();
+    closeProfileModal();
+  } catch (error) {
+    profileFormError.textContent = error.message || "Something went wrong. Try again.";
+    profileFormError.hidden = false;
+  } finally {
+    profileFormSubmit.disabled = false;
+    profileFormSubmit.textContent = "Save Changes";
+  }
+});
+
+// ── Members modal ─────────────────────────────────────────────────────────────
+
+function renderMembersList(members) {
+  if (!members.length) {
+    membersList.innerHTML = "<p style=\"padding:14px;color:var(--muted)\">No members found.</p>";
+    return;
+  }
+  const isOwner = session?.role === "owner";
+  membersList.innerHTML = members.map((m) => `
+    <div class="member-row" data-member-id="${escapeHtml(m.id)}">
+      <div>
+        <span class="member-row-name">${escapeHtml(m.display_name)}</span>
+        <span class="member-row-email">${escapeHtml(m.email)}</span>
+      </div>
+      ${isOwner
+        ? `<select class="member-role-select" data-member-id="${escapeHtml(m.id)}" aria-label="Role for ${escapeHtml(m.display_name)}">
+            <option value="member" ${m.role === "member" ? "selected" : ""}>Member</option>
+            <option value="admin" ${m.role === "admin" ? "selected" : ""}>Admin</option>
+            <option value="owner" ${m.role === "owner" ? "selected" : ""}>Owner</option>
+           </select>`
+        : `<span class="member-role-badge">${escapeHtml(m.role || "")}</span>`}
+      ${m.id !== session?.id
+        ? `<button type="button" class="member-remove-btn" data-member-id="${escapeHtml(m.id)}" aria-label="Remove ${escapeHtml(m.display_name)}">×</button>`
+        : `<span style="width:28px"></span>`}
+    </div>
+  `).join("");
+}
+
+async function openMembersModal() {
+  closeProfilePanel();
+  membersList.innerHTML = "<p style=\"padding:14px;color:var(--muted)\">Loading…</p>";
+  membersModal.showModal();
+  try {
+    const response = await fetch(MEMBERS_ENDPOINT, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Failed to load members (${response.status})`);
+    const data = await response.json();
+    renderMembersList(data.members || []);
+  } catch (error) {
+    membersList.innerHTML = `<p style="padding:14px;color:var(--muted)">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function closeMembersModal() { membersModal.close(); }
+
+openMembersBtn.addEventListener("click", openMembersModal);
+membersModalClose.addEventListener("click", closeMembersModal);
+membersModal.addEventListener("click", (e) => { if (e.target === membersModal) closeMembersModal(); });
+
+// Role change delegation
+membersList.addEventListener("change", async (e) => {
+  const select = e.target.closest(".member-role-select");
+  if (!select) return;
+  const memberId = select.dataset.memberId;
+  select.disabled = true;
+  try {
+    const response = await fetch(`${MEMBERS_ENDPOINT}?id=${memberId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: select.value }),
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to update role");
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-alert
+    window.alert(error.message);
+    // Reload list to reset the stale select value
+    const reload = await fetch(MEMBERS_ENDPOINT, { cache: "no-store" }).catch(() => null);
+    if (reload?.ok) renderMembersList((await reload.json()).members || []);
+  } finally {
+    select.disabled = false;
+  }
+});
+
+// Remove-member delegation
+membersList.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".member-remove-btn");
+  if (!btn) return;
+  const memberId = btn.dataset.memberId;
+  const row = btn.closest(".member-row");
+  const name = row.querySelector(".member-row-name")?.textContent || "this member";
+  // eslint-disable-next-line no-alert
+  if (!window.confirm(`Remove ${name} from the group?`)) return;
+  btn.disabled = true;
+  try {
+    const response = await fetch(`${MEMBERS_ENDPOINT}?id=${memberId}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to remove member");
+    }
+    row.remove();
+  } catch (error) {
+    // eslint-disable-next-line no-alert
+    window.alert(error.message);
+    btn.disabled = false;
+  }
+});
+
+// Add member form
+addMemberForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  addMemberError.hidden = true;
+  addMemberSubmit.disabled = true;
+  addMemberSubmit.textContent = "Adding…";
+  try {
+    const response = await fetch(MEMBERS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: amEmail.value.trim(),
+        display_name: amName.value.trim(),
+        role: amRole.value,
+      }),
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || `Failed to add member (${response.status})`);
+    }
+    amEmail.value = "";
+    amName.value = "";
+    amRole.value = "member";
+    const reload = await fetch(MEMBERS_ENDPOINT, { cache: "no-store" });
+    renderMembersList((await reload.json()).members || []);
+  } catch (error) {
+    addMemberError.textContent = error.message;
+    addMemberError.hidden = false;
+  } finally {
+    addMemberSubmit.disabled = false;
+    addMemberSubmit.textContent = "Add Member";
+  }
+});
 
 function initials(name) {
   return name
@@ -1013,7 +1301,11 @@ function renderAll() {
 }
 
 async function init() {
-  const [cmsResult, wireResult] = await Promise.allSettled([loadCmsTrip(), loadWire()]);
+  const [cmsResult, wireResult, sessionResult] = await Promise.allSettled([
+    loadCmsTrip(),
+    loadWire(),
+    loadSession(),
+  ]);
 
   if (cmsResult.status === "rejected") {
     console.warn("Using fallback trip data because CMS loading failed.", cmsResult.reason);
@@ -1025,6 +1317,16 @@ async function init() {
     wirePosts = fallbackWirePosts;
   }
 
+  if (sessionResult.status === "rejected") {
+    console.warn("Session could not be loaded.", sessionResult.reason);
+  }
+
+  // Profile requires auth — load after session is confirmed
+  if (session) {
+    await loadProfile().catch((err) => console.warn("Profile could not be loaded.", err));
+  }
+
+  renderProfileWidget();
   renderAll();
 }
 
