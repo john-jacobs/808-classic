@@ -1029,3 +1029,207 @@ async function init() {
 }
 
 init();
+
+/* ─── 808 Cali Trivia ──────────────────────────────────── */
+(function () {
+  const QUESTIONS_PER_GAME = 8;
+  const CHOICES_PER_Q      = 4;
+
+  let pool = [], questions = [], results = [], current = 0, score = 0, answered = false;
+
+  const modal      = document.getElementById('triviaModal');
+  const openBtn    = document.getElementById('triviaBtn');
+  const closeBtn   = document.getElementById('triviaClose');
+  const restartBtn = document.getElementById('t-restart-btn');
+  const nextBtn    = document.getElementById('t-next-btn');
+
+  openBtn.addEventListener('click', () => { modal.showModal(); if (!pool.length) bootTrivia(); });
+  closeBtn.addEventListener('click', () => modal.close());
+  modal.addEventListener('click', e => { if (e.target === modal) modal.close(); });
+
+  async function bootTrivia() {
+    try {
+      const res = await fetch('./data.json');
+      if (!res.ok) throw new Error('Could not load trivia data.');
+      const raw = await res.json();
+      pool = raw.filter(r => r.text && r.text.trim());
+      if (pool.length < CHOICES_PER_Q) throw new Error('Not enough trivia data.');
+      startGame();
+    } catch (e) {
+      document.getElementById('t-loading').style.display = 'none';
+      const err = document.getElementById('t-error');
+      err.style.display = 'block';
+      err.textContent = e.message;
+    }
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function buildQuestions() {
+    const shuffled = shuffle(pool);
+    const n = Math.min(QUESTIONS_PER_GAME, shuffled.length);
+    return shuffled.slice(0, n).map(correct => {
+      const wrongPool = shuffle(pool.filter(r => r.id !== correct.id && r.text !== correct.text));
+      const seen = new Set([correct.text]);
+      const wrong = [];
+      for (const r of wrongPool) {
+        if (!seen.has(r.text)) { seen.add(r.text); wrong.push(r.text); if (wrong.length === CHOICES_PER_Q - 1) break; }
+      }
+      return { image: correct.image, correct: correct.text, choices: shuffle([correct.text, ...wrong]) };
+    });
+  }
+
+  function startGame() {
+    questions = buildQuestions();
+    results   = new Array(questions.length).fill(null);
+    current   = 0;
+    score     = 0;
+
+    document.getElementById('t-loading').style.display    = 'none';
+    document.getElementById('t-error').style.display      = 'none';
+    document.getElementById('t-end').style.display        = 'none';
+    document.getElementById('t-card').style.display       = 'flex';
+    document.getElementById('t-scoreboard').style.display = 'flex';
+    document.getElementById('t-q-total').textContent      = questions.length;
+
+    renderQuestion();
+  }
+
+  function renderDots() {
+    const track = document.getElementById('t-dot-track');
+    track.innerHTML = '';
+    questions.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 't-dot';
+      if      (results[i] === 'correct') d.classList.add('correct');
+      else if (results[i] === 'wrong')   d.classList.add('wrong');
+      else if (i === current)            d.classList.add('active');
+      track.appendChild(d);
+    });
+  }
+
+  function truncate(t, max = 180) { return t.length > max ? t.slice(0, max).trimEnd() + '…' : t; }
+
+  function renderQuestion() {
+    const q = questions[current];
+    document.getElementById('t-q-num').textContent   = current + 1;
+    document.getElementById('t-score').textContent   = score;
+    document.getElementById('t-img').src             = q.image;
+    document.getElementById('t-feedback').textContent = '';
+    document.getElementById('t-feedback').className   = '';
+    nextBtn.disabled = true;
+    answered = false;
+    renderDots();
+
+    const choicesEl = document.getElementById('t-choices');
+    choicesEl.innerHTML = '';
+    q.choices.forEach(text => {
+      const btn = document.createElement('button');
+      btn.className   = 't-choice';
+      btn.textContent = truncate(text);
+      btn.addEventListener('click', () => handleAnswer(btn, text, q.correct));
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(btn, chosen, correct) {
+    if (answered) return;
+    answered = true;
+
+    document.querySelectorAll('.t-choice').forEach(b => {
+      b.disabled = true;
+      if (b.textContent === truncate(correct)) b.classList.add('correct');
+    });
+
+    const fb = document.getElementById('t-feedback');
+    if (chosen === correct) {
+      btn.classList.add('correct');
+      fb.textContent = 'Correct!';
+      fb.className   = 'correct';
+      score++;
+      results[current] = 'correct';
+    } else {
+      btn.classList.add('wrong');
+      fb.textContent = 'Wrong — the correct tweet is highlighted.';
+      fb.className   = 'wrong';
+      results[current] = 'wrong';
+    }
+
+    document.getElementById('t-score').textContent = score;
+    renderDots();
+    nextBtn.disabled = false;
+  }
+
+  function launchConfetti() {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2000;';
+    document.body.appendChild(canvas);
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#ff5f05','#13294b','#ffd700','#ffffff','#17452e','#e7eee5','#f4a234'];
+    const particles = Array.from({length: 140}, () => ({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * 120,
+      w: 7 + Math.random() * 7,
+      h: 10 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2.5 + Math.random() * 3.5,
+      angle: Math.random() * Math.PI * 2,
+      va: (Math.random() - 0.5) * 0.15,
+      opacity: 1,
+    }));
+    let frame = 0;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.angle += p.va;
+        if (frame > 100) p.opacity -= 0.012;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      frame++;
+      if (frame < 180) requestAnimationFrame(animate);
+      else canvas.remove();
+    }
+    animate();
+  }
+
+  function showEnd() {
+    document.getElementById('t-card').style.display       = 'none';
+    document.getElementById('t-scoreboard').style.display = 'none';
+
+    const pct   = score / questions.length;
+    // 8 questions: 8=perfect, 6-7=solid, 3-5=not bad, 0-2=oof
+    const label = pct === 1   ? 'Perfect 8! #keep808alive' :
+                  pct >= 0.75 ? 'Solid - you definitely lived at 808' :
+                  pct >= 0.375? 'Not bad, but you need to reconnect with the 808 Cali Bros' :
+                                'Oof - did you even live at 808?';
+
+    document.getElementById('t-final-score').textContent = `${score} / ${questions.length}`;
+    document.getElementById('t-final-label').textContent  = label;
+    document.getElementById('t-end').style.display        = 'flex';
+
+    if (pct >= 0.75) launchConfetti();
+  }
+
+  nextBtn.addEventListener('click', () => {
+    current++;
+    if (current >= questions.length) showEnd(); else renderQuestion();
+  });
+
+  restartBtn.addEventListener('click', startGame);
+})();
