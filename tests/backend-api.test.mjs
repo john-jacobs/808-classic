@@ -1,10 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { webcrypto } from "node:crypto";
+
+// crypto and File are globals in Cloudflare Workers and Node 20+. Polyfill for Node 18.
+if (typeof crypto === "undefined") global.crypto = webcrypto;
+if (typeof File === "undefined") {
+  global.File = class File extends Blob {
+    constructor(chunks, name, options = {}) {
+      super(chunks, options);
+      this.name = name;
+    }
+  };
+}
 
 import { onRequestGet as health } from "../functions/api/health.js";
 import { onRequestGet as tournament } from "../functions/api/tournament.js";
 import { onRequestGet as feed } from "../functions/api/feed.js";
 import { onRequestPost as createPost } from "../functions/api/posts.js";
+import { onRequestPost as uploadMedia, onRequestGet as getMedia } from "../functions/api/media.js";
 import { supabaseRequest } from "../functions/_lib/supabase.js";
 
 const env = {
@@ -146,6 +159,180 @@ test("tournament endpoint returns configured page data from Supabase", async () 
   assert.equal(body.classic_attendance[0].score, "E");
 });
 
+test("media upload rejects unsupported file types", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const form = new FormData();
+  form.append("file", new File(["data"], "clip.gif", { type: "image/gif" }));
+
+  const response = await uploadMedia({
+    request: accessRequest("https://example.com/api/media", { method: "POST", body: form }),
+    env,
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.ok(body.error.includes("Unsupported file type"));
+});
+
+test("media upload rejects files over 50 MB", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const bigFile = new File([new Uint8Array(52_428_801)], "big.mp4", { type: "video/mp4" });
+  const form = new FormData();
+  form.append("file", bigFile);
+
+  const response = await uploadMedia({
+    request: accessRequest("https://example.com/api/media", { method: "POST", body: form }),
+    env,
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "File exceeds the 50 MB limit" });
+});
+
+test("media upload stores file and returns a signed URL", async () => {
+  const uploadedPaths = [];
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/storage/v1/object/trip-media/")) {
+      uploadedPaths.push(url);
+      return Response.json({ Key: "trip-media/path/file.mp4" });
+    }
+    if (url.includes("/storage/v1/object/sign/")) {
+      return Response.json({ signedURL: "/object/sign/trip-media/path/file.mp4?token=abc" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const form = new FormData();
+  form.append("file", new File(["video-data"], "round.mp4", { type: "video/mp4" }));
+
+  const response = await uploadMedia({
+    request: accessRequest("https://example.com/api/media", { method: "POST", body: form }),
+    env,
+  });
+
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.ok(body.path.endsWith(".mp4"), "storage path should have .mp4 extension");
+  assert.ok(body.signedUrl.includes("token=abc"), "response should include signed URL");
+  assert.equal(body.media, null, "media record should be null when no postId provided");
+  assert.equal(uploadedPaths.length, 1, "should have uploaded exactly one file");
+});
+
+test("media upload attaches file to a post and sets sort_order", async () => {
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) return Response.json([{ id: "post-1" }]);
+    if (url.includes("/storage/v1/object/trip-media/")) return Response.json({ Key: "ok" });
+    if (url.includes("/storage/v1/object/sign/")) {
+      return Response.json({ signedURL: "/object/sign/trip-media/x?token=xyz" });
+    }
+    if (url.includes("/post_media?post_id") && options?.method !== "POST") {
+      return Response.json([{ sort_order: 1 }]); // one existing item
+    }
+    if (url.includes("/post_media?") && options?.method === "POST") {
+      const inserted = JSON.parse(options.body);
+      return Response.json([{ ...inserted, id: "media-1" }]);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const form = new FormData();
+  form.append("file", new File(["img"], "photo.jpg", { type: "image/jpeg" }));
+  form.append("postId", "post-1");
+
+  const response = await uploadMedia({
+    request: accessRequest("https://example.com/api/media", { method: "POST", body: form }),
+    env,
+  });
+
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.equal(body.media.post_id, "post-1");
+  assert.equal(body.media.sort_order, 2); // existing max was 1, next is 2
+});
+
+test("media upload rejects postId that does not belong to the active trip", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) return Response.json([]); // post not found in active trip
+    return new Response("Not found", { status: 404 });
+  };
+
+  const form = new FormData();
+  form.append("file", new File(["img"], "photo.jpg", { type: "image/jpeg" }));
+  form.append("postId", "foreign-post-id");
+
+  const response = await uploadMedia({
+    request: accessRequest("https://example.com/api/media", { method: "POST", body: form }),
+    env,
+  });
+
+  assert.equal(response.status, 404);
+});
+
+test("GET /api/media returns a signed URL for an active-trip path", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/storage/v1/object/sign/")) {
+      return Response.json({ signedURL: "/object/sign/trip-media/trip-1/member-1/file.mp4?token=def" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await getMedia({
+    request: accessRequest(`https://example.com/api/media?path=trip-1/member-1/file.mp4`),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.ok(body.signedUrl.includes("token=def"));
+});
+
+test("GET /api/media rejects a path from a different trip", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await getMedia({
+    request: accessRequest(`https://example.com/api/media?path=other-trip-id/member-1/file.mp4`),
+    env,
+  });
+
+  assert.equal(response.status, 403);
+});
+
 test("feed endpoint returns editorial fields and match metadata", async () => {
   globalThis.fetch = async (url) => {
     if (url.includes("/members?")) {
@@ -170,4 +357,65 @@ test("feed endpoint returns editorial fields and match metadata", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.posts[0].headline, "Chuck Turns Back Arnaud");
   assert.equal(body.posts[0].metadata.result.margin, 9);
+});
+
+test("feed endpoint resolves signed URLs for Supabase storage paths", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) {
+      return Response.json([{
+        id: "post-1",
+        type: "dispatch",
+        headline: "Field dispatch",
+        metadata: {},
+        media: [{ storage_path: "trip-1/member-1/photo.jpg", mime_type: "image/jpeg", sort_order: 0 }],
+      }]);
+    }
+    if (url.includes("/storage/v1/object/sign/")) {
+      return Response.json({ signedURL: "/object/sign/trip-media/trip-1/member-1/photo.jpg?token=xyz" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await feed({ request: accessRequest("https://example.com/api/feed"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.ok(body.posts[0].media[0].url?.includes("token=xyz"), "should include a signed URL");
+  assert.equal(body.posts[0].media[0].storage_path, "trip-1/member-1/photo.jpg", "should preserve original storage_path");
+});
+
+test("feed endpoint skips signing for bundled local asset paths", async () => {
+  let signCalled = false;
+  globalThis.fetch = async (url) => {
+    if (url.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (url.includes("/group_memberships?")) return Response.json([{ role: "member" }]);
+    if (url.includes("/posts?")) {
+      return Response.json([{
+        id: "post-2",
+        type: "dispatch",
+        headline: "Classic recap",
+        metadata: {},
+        media: [{ storage_path: "./assets/wire/arnaud-chuck-macktown.webp", sort_order: 0 }],
+      }]);
+    }
+    if (url.includes("/storage/v1/object/sign/")) {
+      signCalled = true;
+      return Response.json({ signedURL: "/should/not/be/called?token=oops" });
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await feed({ request: accessRequest("https://example.com/api/feed"), env });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(signCalled, false, "should not call Storage sign API for local asset paths");
+  assert.equal(body.posts[0].media[0].url, undefined, "local asset should not have a url property");
+  assert.equal(body.posts[0].media[0].storage_path, "./assets/wire/arnaud-chuck-macktown.webp");
 });

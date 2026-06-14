@@ -417,6 +417,304 @@ h2 {
   color: var(--muted);
 }
 
+/* Wire dispatches list */
+.wire-dispatches {
+  width: min(1160px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 32px 0 0;
+}
+
+.wire-dispatches-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--navy);
+  margin-bottom: 0;
+}
+
+.wire-dispatches-head span {
+  color: var(--orange-dark);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.wire-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  color: #fff;
+  background: var(--navy);
+  border: none;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-height: 36px;
+}
+
+.wire-post-btn:hover {
+  background: var(--orange-dark);
+}
+
+.wire-dispatch-list {
+  display: grid;
+  gap: 0;
+}
+
+.wire-dispatch-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.wire-dispatch-item:last-child {
+  border-bottom: none;
+}
+
+.wire-dispatch-meta {
+  margin: 0 0 6px;
+  color: var(--orange-dark);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wire-dispatch-body {
+  margin: 0;
+  color: #313b45;
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: 0.97rem;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wire-dispatch-thumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
+.wire-dispatch-empty {
+  padding: 24px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Composer modal */
+.wire-composer-modal {
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 24px 64px rgba(16, 24, 32, 0.32);
+  overflow: auto;
+}
+
+.wire-composer-modal::backdrop {
+  background: rgba(19, 41, 75, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.modal-inner {
+  padding: 28px 28px 24px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--ink);
+}
+
+.wire-composer-label {
+  margin: 0 0 14px;
+  color: var(--orange-dark);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.composer-body {
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.55;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.composer-body:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.composer-body:disabled {
+  opacity: 0.6;
+}
+
+.composer-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.composer-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  color: var(--navy);
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+.composer-attach:hover {
+  border-color: var(--navy);
+  background: var(--fairway);
+}
+
+.composer-attach input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.composer-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.composer-preview img,
+.composer-preview video {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.composer-preview-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.composer-preview-remove {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.composer-preview-remove:hover {
+  color: var(--ink);
+}
+
+.composer-submit {
+  margin-left: auto;
+  padding: 10px 20px;
+  color: #fff;
+  background: var(--navy);
+  border: none;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+.composer-submit:hover {
+  background: var(--orange-dark);
+}
+
+.composer-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.composer-error {
+  margin: 10px 0 0;
+  color: #b83b00;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  .modal-inner {
+    padding: 20px 16px 18px;
+  }
+  .composer-footer {
+    flex-wrap: wrap;
+  }
+  .composer-submit {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+  }
+}
+
 .wire-story-head {
   max-width: 940px;
   padding: 36px 0 28px;

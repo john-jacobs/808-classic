@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260612-wire" />
+    <link rel="stylesheet" href="./styles.css?v=20260613-media" />
   </head>
   <body>
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -198,6 +198,25 @@
       </section>
     </main>
 
+    <dialog id="wireComposerModal" class="wire-composer-modal" aria-label="Post to the Wire">
+      <div class="modal-inner">
+        <button type="button" class="modal-close" id="composerModalClose" aria-label="Close">×</button>
+        <p class="wire-composer-label">Post a dispatch</p>
+        <form id="wireComposer" novalidate>
+          <textarea id="composerBody" class="composer-body" name="body" placeholder="What happened out there?" maxlength="5000" rows="5" aria-label="Dispatch text"></textarea>
+          <div class="composer-footer">
+            <label class="composer-attach" aria-label="Attach a photo or video">
+              <input id="composerFile" type="file" accept="video/mp4,video/quicktime,image/jpeg,image/png,image/webp" />
+              <span>Attach</span>
+            </label>
+            <div id="composerPreview" class="composer-preview" hidden></div>
+            <button type="submit" id="composerSubmit" class="composer-submit">Post to Wire</button>
+          </div>
+          <p id="composerError" class="composer-error" hidden></p>
+        </form>
+      </div>
+    </dialog>
+
     <dialog id="bioDialog" class="bio-dialog">
       <button class="dialog-close" type="button" aria-label="Close player dossier">×</button>
       <div id="bioDialogContent"></div>
@@ -208,6 +227,6 @@
       <span>All rulings final unless loudly disputed in the group chat.</span>
     </footer>
 
-    <script src="./app.js?v=20260612-wire"></script>
+    <script src="./app.js?v=20260613-media"></script>
   </body>
 </html>

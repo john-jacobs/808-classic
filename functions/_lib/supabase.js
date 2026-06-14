@@ -31,3 +31,27 @@ export async function supabaseRequest(env, path, options = {}) {
 
   return data;
 }
+
+export async function supabaseStorage(env, storagePath, options = {}) {
+  assertBackendEnv(env);
+
+  const url = `${env.SUPABASE_URL}/storage/v1${storagePath}`;
+  const headers = new Headers(options.headers || {});
+  headers.set("apikey", env.SUPABASE_SECRET_KEY);
+  if (!env.SUPABASE_SECRET_KEY.startsWith("sb_secret_")) {
+    headers.set("authorization", `Bearer ${env.SUPABASE_SECRET_KEY}`);
+  }
+
+  const response = await fetch(url, { ...options, headers });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw Object.assign(
+      new Error(`Supabase Storage ${response.status}: ${text}`),
+      { status: response.status >= 400 && response.status < 500 ? response.status : 502 },
+    );
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
