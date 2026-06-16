@@ -319,6 +319,7 @@ const fallbackTrip = {
 const fallbackWirePosts = [
   {
     type: "dispatch",
+    pinned: true,
     headline: "Chuck Turns Back Arnaud at Macktown, 105-114",
     dek: "A nervous challenger, a microscopic serving of birdie juice, and a back-nine charge settle the first match of the 2026 campaign.",
     byline: "808 Wire Staff",
@@ -347,6 +348,67 @@ Chuck offered no reciprocal evaluation of Arnaud. Asked for comment, he first as
     media: [
       { storage_path: "./assets/wire/arnaud-chuck-macktown.webp", sort_order: 0 },
       { storage_path: "./assets/wire/arnaud-chuck-scorecard.webp", sort_order: 1 },
+    ],
+  },
+  {
+    type: "dispatch",
+    headline: "Chuck Opens Big Run Mentorship Program, Escapes 117-119",
+    dek: "At his home course, the defending champion guided a younger math-department colleague through Big Run and survived despite 46 putts, five penalties, and another formal statement about the greens.",
+    byline: "808 Wire Staff",
+    location: "Lockport, Illinois",
+    published_at: "2026-06-15T21:24:00-05:00",
+    body: `Big Run Golf Club has officially become the defending champion's teaching hospital. On Monday, Charles Vokes returned to his home course with Benjamin, a younger teacher from the math department, for what can only be described as a mentorship round conducted under live-fire conditions.
+
+Chuck won, technically. His 117 edged Benjamin's 119 by two shots, which is both a result and an indictment of the scoring environment. The card shows Chuck turning in 59 and coming home in 58, a level of steadiness that only looks comforting until you notice the ten on the ninth, the nine on the eighteenth, and the fact that the whole thing still required 117 strokes.
+
+The round produced useful data. Chuck hit half his fairways, found two greens in regulation, took 46 putts, recorded ten three-putts, and assessed the matter with unusual clarity: "My irons are so fucked right now. Definitely still have to stop fucking around around the greens."
+
+For Benjamin, the apprenticeship was immediate and immersive. He opened with a 57, closed with a 62, and still forced Chuck to produce something resembling veteran composure. It was less Big Brother, Big Run than Big Brother, Big Number.
+
+The 808 Classic will classify the result as a successful defense of departmental seniority and an ongoing concern for the short game.`,
+    metadata: {
+      course: "Big Run Golf Club",
+      course_note:
+        "A 1930 Lockport par 72 that can stretch past 7,000 yards, with elevation changes, no driving range, and enough putting trouble to make 46 putts feel narratively inevitable.",
+      source_url: "https://www.bigrungolf.com/course-layout/",
+      result: {
+        winner: "Charles Vokes",
+        winner_total: 117,
+        runner_up: "Benjamin",
+        runner_up_total: 119,
+        margin: 2,
+      },
+      scorecard: [
+        { name: "Charles Vokes", front: 59, back: 58, total: 117, to_par: "+45" },
+        { name: "Benjamin", front: 57, back: 62, total: 119, to_par: "+47" },
+      ],
+      stats: {
+        fairways_hit: "50% (7)",
+        greens_in_regulation: "11.1% (2)",
+        total_putts: 46,
+        putts_per_hole: 2.6,
+        three_putts: 10,
+        sand_saves: "0%",
+        up_and_down: "0%",
+        penalties: 5,
+      },
+    },
+    media: [
+      {
+        storage_path: "./assets/wire/chuck-big-run-scorecard.webp",
+        sort_order: 0,
+        caption: "Final card · Chuck 117, Benjamin 119",
+      },
+      {
+        storage_path: "./assets/wire/chuck-big-run-stats-1.webp",
+        sort_order: 1,
+        caption: "18Birdies stats · Gross score, fairways, and greens",
+      },
+      {
+        storage_path: "./assets/wire/chuck-big-run-stats-2.webp",
+        sort_order: 2,
+        caption: "18Birdies stats · Putting, penalties, and recovery work",
+      },
     ],
   },
 ];
@@ -621,6 +683,15 @@ function sortedWireMedia(post = {}) {
   return [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
 }
 
+function wireMediaCaption(item = {}, index = 0, post = {}) {
+  if (present(item.caption)) return item.caption;
+  const scores = post.metadata?.scorecard || [];
+  if (index === 0 && scores.length >= 2) {
+    return `Final card · ${scores[0].name.split(" ")[0]} ${scores[0].total}, ${scores[1].name.split(" ")[0]} ${scores[1].total}`;
+  }
+  return index === 0 ? "Final card" : `Supporting image ${index + 1}`;
+}
+
 function wireExcerpt(post = {}, maxLength = 190) {
   const source = firstPresent(post.dek, String(post.body || "").split(/\n{2,}/)[0]);
   if (source.length <= maxLength) return source;
@@ -657,7 +728,10 @@ function renderWire() {
     return;
   }
 
-  const latestDate = formatWireDate(featured.published_at || featured.created_at);
+  const latestPost = [...posts].sort(
+    (a, b) => new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0),
+  )[0];
+  const latestDate = formatWireDate(latestPost?.published_at || latestPost?.created_at);
   wireDate.textContent = latestDate ? `Latest: ${latestDate}` : "Latest dispatch";
 
   wireFeed.innerHTML = `
@@ -709,7 +783,7 @@ function renderWireStory(post) {
   const metadata = post.metadata || {};
   const media = sortedWireMedia(post);
   const featureImage = media[0]?.storage_path;
-  const scorecardImage = media[1]?.storage_path;
+  const supportingMedia = media.slice(1);
   const scores = metadata.scorecard || [];
   const published = formatWireDate(post.published_at || post.created_at);
 
@@ -722,7 +796,7 @@ function renderWireStory(post) {
         <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
       </header>
 
-      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="Arnaud Brisard and Charles Vokes at Macktown Golf Course" loading="lazy" decoding="async" />` : ""}
+      ${featureImage ? `<img class="wire-feature-image" src="${escapeHtml(featureImage)}" alt="${escapeHtml(post.headline || "808 Wire dispatch")}" loading="lazy" decoding="async" />` : ""}
 
       ${
         scores.length
@@ -753,14 +827,16 @@ function renderWireStory(post) {
             .join("")}
         </div>
         <aside class="wire-sidebar">
-          ${
-            scorecardImage
-              ? `<figure>
-                  <img src="${escapeHtml(scorecardImage)}" alt="Final 18Birdies scorecard for Charles Vokes and Arnaud Brisard" loading="lazy" decoding="async" />
-                  <figcaption>Final card · Chuck 105, Arnaud 114</figcaption>
-                </figure>`
-              : ""
-          }
+          ${supportingMedia
+            .map(
+              (item, index) => `
+                <figure>
+                  <img src="${escapeHtml(item.storage_path)}" alt="${escapeHtml(wireMediaCaption(item, index, post))}" loading="lazy" decoding="async" />
+                  <figcaption>${escapeHtml(wireMediaCaption(item, index, post))}</figcaption>
+                </figure>
+              `,
+            )
+            .join("")}
           ${
             metadata.course_note
               ? `<div class="wire-course-note">
