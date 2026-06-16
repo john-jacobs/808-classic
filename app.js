@@ -366,6 +366,8 @@ const attendeeGrid = document.querySelector("#attendeeGrid");
 const alumniGrid = document.querySelector("#alumniGrid");
 const bioDialog = document.querySelector("#bioDialog");
 const bioDialogContent = document.querySelector("#bioDialogContent");
+const wireDialog = document.querySelector("#wireDialog");
+const wireDialogContent = document.querySelector("#wireDialogContent");
 const guestsGrid = document.querySelector("#guestsGrid");
 const navLinks = [...document.querySelectorAll(".nav-links a")];
 const navSections = navLinks
@@ -601,25 +603,120 @@ function formatWireDate(value) {
   }).format(new Date(value));
 }
 
+function wireTypeLabel(type = "") {
+  const labels = {
+    dispatch: "Match report",
+    match_report: "Match report",
+    quick_update: "Quick update",
+    photo_drop: "Photo drop",
+    score_update: "Score update",
+    logistics: "Logistics",
+    ruling: "Official ruling",
+    daily_recap: "Daily recap",
+  };
+  return labels[type] || String(type || "Dispatch").replace(/_/g, " ");
+}
+
+function sortedWireMedia(post = {}) {
+  return [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+}
+
+function wireExcerpt(post = {}, maxLength = 190) {
+  const source = firstPresent(post.dek, String(post.body || "").split(/\n{2,}/)[0]);
+  if (source.length <= maxLength) return source;
+  return `${source.slice(0, maxLength).trim().replace(/[.,;:!?-]+$/, "")}...`;
+}
+
+function renderWireScoreSummary(scores = []) {
+  if (!scores.length) return "";
+  return `
+    <div class="wire-card-scores" aria-label="Final score">
+      ${scores
+        .map(
+          (score, index) => `
+            <span class="${index === 0 ? "winner" : ""}">
+              <strong>${escapeHtml(score.name)}</strong>
+              <b>${escapeHtml(score.total)}</b>
+            </span>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderWire() {
-  const post = wirePosts[0];
-  if (!post) {
+  const posts = [...wirePosts].sort((a, b) => {
+    if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
+    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+  });
+  const featured = posts[0];
+
+  if (!featured) {
     wireFeed.innerHTML = `<p class="wire-empty">No dispatches have cleared the desk.</p>`;
     return;
   }
 
+  const latestDate = formatWireDate(featured.published_at || featured.created_at);
+  wireDate.textContent = latestDate ? `Latest: ${latestDate}` : "Latest dispatch";
+
+  wireFeed.innerHTML = `
+    <div class="wire-desk ${posts.length === 1 ? "solo" : ""}">
+      ${renderWireCard(featured, 0, true)}
+      ${
+        posts.length > 1
+          ? `<aside class="wire-rail" aria-label="More Wire updates">
+              <div class="wire-rail-head">
+                <span>Filed updates</span>
+                <strong>${posts.length}</strong>
+              </div>
+              <div class="wire-list">
+                ${posts.slice(1, 5).map((post, index) => renderWireCard(post, index + 1, false)).join("")}
+              </div>
+            </aside>`
+          : ""
+      }
+    </div>
+  `;
+}
+
+function renderWireCard(post, index, featured = false) {
   const metadata = post.metadata || {};
-  const media = [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+  const media = sortedWireMedia(post);
+  const image = media[0]?.storage_path;
+  const scores = metadata.scorecard || [];
+  const published = formatWireDate(post.published_at || post.created_at);
+  const label = wireTypeLabel(post.type);
+
+  return `
+    <article class="wire-card ${featured ? "featured" : "compact"}">
+      ${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async" />` : ""}
+      <div class="wire-card-body">
+        <div class="wire-card-meta">
+          <span>${escapeHtml(label)}</span>
+          ${published ? `<time>${escapeHtml(published)}</time>` : ""}
+        </div>
+        <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
+        <p>${escapeHtml(wireExcerpt(post, featured ? 210 : 118))}</p>
+        ${renderWireScoreSummary(scores)}
+        <button type="button" data-wire-post="${index}">${featured ? "Read report" : "Open"}</button>
+      </div>
+    </article>
+  `;
+}
+
+function renderWireStory(post) {
+  const metadata = post.metadata || {};
+  const media = sortedWireMedia(post);
   const featureImage = media[0]?.storage_path;
   const scorecardImage = media[1]?.storage_path;
   const scores = metadata.scorecard || [];
   const published = formatWireDate(post.published_at || post.created_at);
 
-  wireDate.textContent = published;
-  wireFeed.innerHTML = `
+  return `
     <article class="wire-story">
       <header class="wire-story-head">
-        <p class="wire-label">${escapeHtml(post.type === "dispatch" ? "Match report" : post.type || "Dispatch")}</p>
+        <p class="wire-label">${escapeHtml(wireTypeLabel(post.type))}</p>
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
         ${post.dek ? `<p class="wire-dek">${escapeHtml(post.dek)}</p>` : ""}
         <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
@@ -677,6 +774,17 @@ function renderWire() {
       </div>
     </article>
   `;
+}
+
+function openWirePost(index) {
+  const posts = [...wirePosts].sort((a, b) => {
+    if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
+    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+  });
+  const post = posts[index];
+  if (!post) return;
+  wireDialogContent.innerHTML = renderWireStory(post);
+  wireDialog.showModal();
 }
 
 function renderLeaderboard() {
@@ -968,6 +1076,12 @@ document.body.addEventListener("click", (event) => {
     return;
   }
 
+  const wireTarget = event.target.closest("[data-wire-post]");
+  if (wireTarget) {
+    openWirePost(Number(wireTarget.dataset.wirePost));
+    return;
+  }
+
   const button = event.target.closest("[data-player]");
   if (!button) return;
   openBio(Number(button.dataset.player));
@@ -987,13 +1101,22 @@ document.body.addEventListener("keydown", (event) => {
     return;
   }
 
+  const wireTarget = event.target.closest("[data-wire-post]");
+  if (wireTarget) {
+    event.preventDefault();
+    openWirePost(Number(wireTarget.dataset.wirePost));
+    return;
+  }
+
   const button = event.target.closest("[data-player]");
   if (!button) return;
   event.preventDefault();
   openBio(Number(button.dataset.player));
 });
 
-document.querySelector(".dialog-close").addEventListener("click", () => bioDialog.close());
+document.querySelectorAll(".dialog-close").forEach((button) => {
+  button.addEventListener("click", () => button.closest("dialog")?.close());
+});
 
 updateCountdown();
 setInterval(updateCountdown, 1000);
