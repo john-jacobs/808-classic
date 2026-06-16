@@ -40,6 +40,11 @@ select
       'up_and_down', '0%',
       'penalties', 5
     ),
+    'media_captions', jsonb_build_object(
+      './assets/wire/chuck-big-run-scorecard.webp', 'Final card · Chuck 117, Benjamin 119',
+      './assets/wire/chuck-big-run-stats-1.webp', '18Birdies stats · Gross score, fairways, and greens',
+      './assets/wire/chuck-big-run-stats-2.webp', '18Birdies stats · Putting, penalties, and recovery work'
+    ),
     'source_url', 'https://www.bigrungolf.com/course-layout/'
   )
 from public.members
@@ -60,13 +65,22 @@ insert into public.post_media (
 )
 values
   (
+    '80800000-0000-4000-8003-000000000006',
+    '80800000-0000-4000-8002-000000000002',
+    './assets/wire/big-run-course-hero.webp',
+    'image/webp',
+    1024,
+    683,
+    0
+  ),
+  (
     '80800000-0000-4000-8003-000000000003',
     '80800000-0000-4000-8002-000000000002',
     './assets/wire/chuck-big-run-scorecard.webp',
     'image/webp',
     970,
     1026,
-    0
+    1
   ),
   (
     '80800000-0000-4000-8003-000000000004',
@@ -75,7 +89,7 @@ values
     'image/webp',
     1206,
     2622,
-    1
+    2
   ),
   (
     '80800000-0000-4000-8003-000000000005',
@@ -84,7 +98,7 @@ values
     'image/webp',
     1206,
     2622,
-    2
+    3
   )
 on conflict (id) do update set
   storage_path = excluded.storage_path,

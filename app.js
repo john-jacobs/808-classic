@@ -392,21 +392,31 @@ The 808 Classic will classify the result as a successful defense of departmental
         up_and_down: "0%",
         penalties: 5,
       },
+      media_captions: {
+        "./assets/wire/chuck-big-run-scorecard.webp": "Final card · Chuck 117, Benjamin 119",
+        "./assets/wire/chuck-big-run-stats-1.webp": "18Birdies stats · Gross score, fairways, and greens",
+        "./assets/wire/chuck-big-run-stats-2.webp": "18Birdies stats · Putting, penalties, and recovery work",
+      },
     },
     media: [
       {
-        storage_path: "./assets/wire/chuck-big-run-scorecard.webp",
+        storage_path: "./assets/wire/big-run-course-hero.webp",
         sort_order: 0,
+        caption: "Big Run Golf Club",
+      },
+      {
+        storage_path: "./assets/wire/chuck-big-run-scorecard.webp",
+        sort_order: 1,
         caption: "Final card · Chuck 117, Benjamin 119",
       },
       {
         storage_path: "./assets/wire/chuck-big-run-stats-1.webp",
-        sort_order: 1,
+        sort_order: 2,
         caption: "18Birdies stats · Gross score, fairways, and greens",
       },
       {
         storage_path: "./assets/wire/chuck-big-run-stats-2.webp",
-        sort_order: 2,
+        sort_order: 3,
         caption: "18Birdies stats · Putting, penalties, and recovery work",
       },
     ],
@@ -691,6 +701,8 @@ function sortedWirePosts() {
 
 function wireMediaCaption(item = {}, index = 0, post = {}) {
   if (present(item.caption)) return item.caption;
+  const mediaCaptions = post.metadata?.media_captions || {};
+  if (present(mediaCaptions[item.storage_path])) return mediaCaptions[item.storage_path];
   const scores = post.metadata?.scorecard || [];
   if (index === 0 && scores.length >= 2) {
     return `Final card · ${scores[0].name.split(" ")[0]} ${scores[0].total}, ${scores[1].name.split(" ")[0]} ${scores[1].total}`;

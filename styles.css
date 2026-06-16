@@ -1702,6 +1702,12 @@ td small {
     grid-template-columns: 1fr;
   }
 
+  .wire-card.featured > img {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    min-height: 0;
+  }
+
   .wire-card.compact {
     min-height: 0;
   }
