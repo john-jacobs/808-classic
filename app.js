@@ -683,6 +683,12 @@ function sortedWireMedia(post = {}) {
   return [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
 }
 
+function sortedWirePosts() {
+  return [...wirePosts].sort(
+    (a, b) => new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0),
+  );
+}
+
 function wireMediaCaption(item = {}, index = 0, post = {}) {
   if (present(item.caption)) return item.caption;
   const scores = post.metadata?.scorecard || [];
@@ -717,35 +723,30 @@ function renderWireScoreSummary(scores = []) {
 }
 
 function renderWire() {
-  const posts = [...wirePosts].sort((a, b) => {
-    if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
-    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
-  });
+  const posts = sortedWirePosts();
   const featured = posts[0];
+  const archivedPosts = posts.slice(1);
 
   if (!featured) {
     wireFeed.innerHTML = `<p class="wire-empty">No dispatches have cleared the desk.</p>`;
     return;
   }
 
-  const latestPost = [...posts].sort(
-    (a, b) => new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0),
-  )[0];
-  const latestDate = formatWireDate(latestPost?.published_at || latestPost?.created_at);
+  const latestDate = formatWireDate(featured.published_at || featured.created_at);
   wireDate.textContent = latestDate ? `Latest: ${latestDate}` : "Latest dispatch";
 
   wireFeed.innerHTML = `
     <div class="wire-desk ${posts.length === 1 ? "solo" : ""}">
       ${renderWireCard(featured, 0, true)}
       ${
-        posts.length > 1
+        archivedPosts.length
           ? `<aside class="wire-rail" aria-label="More Wire updates">
               <div class="wire-rail-head">
-                <span>Filed updates</span>
-                <strong>${posts.length}</strong>
+                <span>Previous reports</span>
+                <strong>${archivedPosts.length}</strong>
               </div>
               <div class="wire-list">
-                ${posts.slice(1, 5).map((post, index) => renderWireCard(post, index + 1, false)).join("")}
+                ${archivedPosts.map((post, index) => renderWireCard(post, index + 1, false)).join("")}
               </div>
             </aside>`
           : ""
@@ -853,10 +854,7 @@ function renderWireStory(post) {
 }
 
 function openWirePost(index) {
-  const posts = [...wirePosts].sort((a, b) => {
-    if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
-    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
-  });
+  const posts = sortedWirePosts();
   const post = posts[index];
   if (!post) return;
   wireDialogContent.innerHTML = renderWireStory(post);

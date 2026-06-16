@@ -608,6 +608,11 @@ h2 {
 .wire-list {
   display: grid;
   gap: 10px;
+  max-height: min(72vh, 860px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
 }
 
 .wire-story-head {
