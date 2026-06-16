@@ -42,8 +42,7 @@ select
     ),
     'media_captions', jsonb_build_object(
       './assets/wire/chuck-big-run-scorecard.webp', 'Final card · Chuck 117, Benjamin 119',
-      './assets/wire/chuck-big-run-stats-1.webp', '18Birdies stats · Gross score, fairways, and greens',
-      './assets/wire/chuck-big-run-stats-2.webp', '18Birdies stats · Putting, penalties, and recovery work'
+      './assets/wire/chuck-big-run-stats-composite.webp', '18Birdies stats · Gross score, fairways, putting, and penalties'
     ),
     'source_url', 'https://www.bigrungolf.com/course-layout/'
   )
@@ -85,20 +84,11 @@ values
   (
     '80800000-0000-4000-8003-000000000004',
     '80800000-0000-4000-8002-000000000002',
-    './assets/wire/chuck-big-run-stats-1.webp',
+    './assets/wire/chuck-big-run-stats-composite.webp',
     'image/webp',
     1206,
-    2622,
+    4066,
     2
-  ),
-  (
-    '80800000-0000-4000-8003-000000000005',
-    '80800000-0000-4000-8002-000000000002',
-    './assets/wire/chuck-big-run-stats-2.webp',
-    'image/webp',
-    1206,
-    2622,
-    3
   )
 on conflict (id) do update set
   storage_path = excluded.storage_path,
@@ -106,3 +96,6 @@ on conflict (id) do update set
   width = excluded.width,
   height = excluded.height,
   sort_order = excluded.sort_order;
+
+delete from public.post_media
+where id = '80800000-0000-4000-8003-000000000005';

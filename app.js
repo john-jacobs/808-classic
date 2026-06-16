@@ -394,8 +394,7 @@ The 808 Classic will classify the result as a successful defense of departmental
       },
       media_captions: {
         "./assets/wire/chuck-big-run-scorecard.webp": "Final card · Chuck 117, Benjamin 119",
-        "./assets/wire/chuck-big-run-stats-1.webp": "18Birdies stats · Gross score, fairways, and greens",
-        "./assets/wire/chuck-big-run-stats-2.webp": "18Birdies stats · Putting, penalties, and recovery work",
+        "./assets/wire/chuck-big-run-stats-composite.webp": "18Birdies stats · Gross score, fairways, putting, and penalties",
       },
     },
     media: [
@@ -410,14 +409,9 @@ The 808 Classic will classify the result as a successful defense of departmental
         caption: "Final card · Chuck 117, Benjamin 119",
       },
       {
-        storage_path: "./assets/wire/chuck-big-run-stats-1.webp",
+        storage_path: "./assets/wire/chuck-big-run-stats-composite.webp",
         sort_order: 2,
-        caption: "18Birdies stats · Gross score, fairways, and greens",
-      },
-      {
-        storage_path: "./assets/wire/chuck-big-run-stats-2.webp",
-        sort_order: 3,
-        caption: "18Birdies stats · Putting, penalties, and recovery work",
+        caption: "18Birdies stats · Gross score, fairways, putting, and penalties",
       },
     ],
   },
