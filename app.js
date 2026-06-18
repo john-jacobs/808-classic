@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260618-wire-manage-visible1";
+const APP_VERSION = "20260618-wire-kind-prompt1";
 
 const fallbackTrip = {
   players: [
@@ -718,16 +718,25 @@ function formatWireDate(value) {
 
 function wireTypeLabel(type = "") {
   const labels = {
-    dispatch: "Match report",
+    dispatch: "Dispatch",
     match_report: "Match report",
+    match_preview: "Match preview",
     quick_update: "Quick update",
     photo_drop: "Photo drop",
+    photo_essay: "Photo essay",
+    practice_report: "Practice report",
+    scouting_report: "Scouting report",
+    rumor_mill: "Rumor mill",
     score_update: "Score update",
     logistics: "Logistics",
     ruling: "Official ruling",
     daily_recap: "Daily recap",
   };
   return labels[type] || String(type || "Dispatch").replace(/_/g, " ");
+}
+
+function wirePostLabel(post = {}) {
+  return wireTypeLabel(post.metadata?.kind || post.type);
 }
 
 function sortedWireMedia(post = {}) {
@@ -813,7 +822,7 @@ function renderWireCard(post, index, featured = false) {
   const image = media[0]?.storage_path;
   const scores = metadata.scorecard || [];
   const published = formatWireDate(post.published_at || post.created_at);
-  const label = wireTypeLabel(post.type);
+  const label = wirePostLabel(post);
 
   return `
     <article class="wire-card ${featured ? "featured" : "compact"}">
@@ -856,7 +865,7 @@ function renderWireArchiveItem(post, index) {
       ${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async" />` : ""}
       <div class="wire-archive-copy">
         <div class="wire-card-meta">
-          <span>${escapeHtml(wireTypeLabel(post.type))}</span>
+          <span>${escapeHtml(wirePostLabel(post))}</span>
           ${published ? `<time>${escapeHtml(published)}</time>` : ""}
         </div>
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
@@ -887,7 +896,7 @@ function renderWireStory(post) {
           : ""
       }
       <header class="wire-story-head">
-        <p class="wire-label">${escapeHtml(wireTypeLabel(post.type))}</p>
+        <p class="wire-label">${escapeHtml(wirePostLabel(post))}</p>
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
         ${post.dek ? `<p class="wire-dek">${escapeHtml(post.dek)}</p>` : ""}
         <p class="wire-byline">By ${escapeHtml(post.byline || post.author?.display_name || "808 Wire Staff")} · ${escapeHtml(post.location || "")}${post.location && published ? " · " : ""}${escapeHtml(published)}</p>
@@ -958,6 +967,21 @@ function datetimeLocalValue(value) {
 }
 
 function renderWireEditForm(post) {
+  const kind = post.metadata?.kind || post.type || "dispatch";
+  const kindOptions = [
+    ["dispatch", "Dispatch"],
+    ["match_preview", "Match preview"],
+    ["match_report", "Match report"],
+    ["practice_report", "Practice report"],
+    ["scouting_report", "Scouting report"],
+    ["score_update", "Score update"],
+    ["rumor_mill", "Rumor mill"],
+    ["photo_drop", "Photo drop"],
+    ["photo_essay", "Photo essay"],
+    ["logistics", "Logistics"],
+    ["official_notice", "Official notice"],
+    ["daily_recap", "Daily recap"],
+  ];
   return `
     <form class="wire-edit-form" data-wire-edit-form="${escapeHtml(post.id)}">
       <div class="wire-edit-head">
@@ -982,6 +1006,14 @@ function renderWireEditForm(post) {
           <input name="byline" type="text" value="${escapeHtml(post.byline || "808 Wire Staff")}" />
         </label>
       </div>
+      <label>
+        Wire label
+        <select name="kind">
+          ${kindOptions
+            .map(([value, label]) => `<option value="${escapeHtml(value)}" ${value === kind ? "selected" : ""}>${escapeHtml(label)}</option>`)
+            .join("")}
+        </select>
+      </label>
       <label>
         Published
         <input name="published_at" type="datetime-local" value="${escapeHtml(datetimeLocalValue(post.published_at || post.created_at))}" />
@@ -1033,6 +1065,7 @@ async function saveWireEdit(form) {
   const formData = new FormData(form);
   const publishedValue = String(formData.get("published_at") || "");
   const publishedAt = publishedValue ? new Date(publishedValue).toISOString() : post.published_at;
+  const metadata = { ...(post.metadata || {}), kind: String(formData.get("kind") || post.metadata?.kind || "dispatch") };
 
   status.textContent = "Saving...";
   form.querySelectorAll("button, input, textarea").forEach((control) => {
@@ -1050,7 +1083,7 @@ async function saveWireEdit(form) {
         location: formData.get("location"),
         published_at: publishedAt,
         body: formData.get("body"),
-        metadata: post.metadata || {},
+        metadata,
       }),
     });
     status.textContent = "Saved.";

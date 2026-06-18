@@ -32,7 +32,24 @@ const ARTICLE_SCHEMA = {
       additionalProperties: false,
       required: ["kind", "course", "course_note", "result", "scorecard"],
       properties: {
-        kind: { type: "string" },
+        kind: {
+          type: "string",
+          enum: [
+            "match_report",
+            "match_preview",
+            "practice_report",
+            "scouting_report",
+            "score_update",
+            "rumor_mill",
+            "photo_drop",
+            "photo_essay",
+            "logistics",
+            "official_notice",
+            "daily_recap",
+            "dispatch",
+          ],
+          description: "Semantic Wire label. Use match_report only after a completed match/round; use match_preview before it happens.",
+        },
         course: { type: "string" },
         course_note: { type: "string" },
         result: {
@@ -159,10 +176,14 @@ async function generateWireDraft(env, input, member, contextData) {
           author: member.display_name,
           raw_submission: userText,
           app_context: contextData,
+          editorial_priority:
+            "The submitted notes are the primary source. Use attached images as supporting evidence. Analyze scorecards, stat screenshots, and other golf data carefully. For ordinary photos, do not make visible details the main story unless the notes explicitly ask for a photo-driven post; use them mainly for captions, atmosphere, and verification.",
+          available_kinds:
+            "Choose metadata.kind from: match_report, match_preview, practice_report, scouting_report, score_update, rumor_mill, photo_drop, photo_essay, logistics, official_notice, daily_recap, dispatch. Use match_report only for a completed match/round with a result. Use match_preview for an upcoming matchup or pre-round setup.",
           voice:
             "Overly official golf-trip journalism. Funny, dry, specific, and lightly grandiose. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
           output_rules:
-            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Prefer dispatch/match_report as metadata.kind. Treat attached images as evidence: mention visually relevant details when useful, generate useful media_captions by image index, and do not ignore scorecards or screenshots. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over.",
+            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over.",
         },
         null,
         2,

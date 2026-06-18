@@ -1209,6 +1209,7 @@ h2 {
 }
 
 .wire-edit-form input,
+.wire-edit-form select,
 .wire-edit-form textarea {
   width: 100%;
   color: var(--ink);
