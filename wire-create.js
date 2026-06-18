@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-wirecreate-debug1";
+const APP_VERSION = "20260618-wirecreate-authfix1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
