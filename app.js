@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260618-wire-mediafix1";
+const APP_VERSION = "20260618-wire-manage-visible1";
 
 const fallbackTrip = {
   players: [
@@ -420,6 +420,7 @@ The 808 Classic will classify the result as a successful defense of departmental
 
 let trip = normalizeTrip(fallbackTrip);
 let wirePosts = fallbackWirePosts;
+let currentMember = null;
 
 const leaderboard = document.querySelector("#leaderboard");
 const wireFeed = document.querySelector("#wireFeed");
@@ -608,6 +609,13 @@ async function loadWire() {
   wirePosts = data.posts || [];
 }
 
+async function loadSession() {
+  const response = await fetch("/api/session", { cache: "no-store" });
+  if (!response.ok) throw new Error(`Session request failed: ${response.status}`);
+  const data = await response.json();
+  currentMember = data.member || null;
+}
+
 async function postJson(url, options = {}) {
   const response = await fetch(url, {
     headers: { "content-type": "application/json", ...(options.headers || {}) },
@@ -746,6 +754,12 @@ function wireMediaCaption(item = {}, index = 0, post = {}) {
   return index === 0 ? "Final card" : `Supporting image ${index + 1}`;
 }
 
+function canManageWirePost(post = {}) {
+  if (!currentMember) return false;
+  if (["owner", "admin"].includes(currentMember.role)) return true;
+  return post.author?.id && post.author.id === currentMember.id;
+}
+
 function wireExcerpt(post = {}, maxLength = 190) {
   const source = firstPresent(post.dek, String(post.body || "").split(/\n{2,}/)[0]);
   if (source.length <= maxLength) return source;
@@ -864,10 +878,14 @@ function renderWireStory(post) {
 
   return `
     <article class="wire-story">
-      <div class="wire-manage-actions">
-        <button type="button" data-wire-edit="${escapeHtml(post.id)}">Edit</button>
-        <button type="button" class="danger" data-wire-delete="${escapeHtml(post.id)}">Delete</button>
-      </div>
+      ${
+        canManageWirePost(post)
+          ? `<div class="wire-manage-actions">
+              <button type="button" data-wire-edit="${escapeHtml(post.id)}">Edit</button>
+              <button type="button" class="danger" data-wire-delete="${escapeHtml(post.id)}">Delete</button>
+            </div>`
+          : ""
+      }
       <header class="wire-story-head">
         <p class="wire-label">${escapeHtml(wireTypeLabel(post.type))}</p>
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
@@ -1465,16 +1483,20 @@ async function init() {
   await ensureFreshAppVersion();
 
   if (isWireArchivePage) {
-    const wireResult = await Promise.allSettled([loadWire()]);
-    if (wireResult[0].status === "rejected") {
-      console.warn("The 808 Wire could not be loaded.", wireResult[0].reason);
+    const [wireResult, sessionResult] = await Promise.allSettled([loadWire(), loadSession()]);
+    if (wireResult.status === "rejected") {
+      console.warn("The 808 Wire could not be loaded.", wireResult.reason);
       wirePosts = fallbackWirePosts;
+    }
+    if (sessionResult.status === "rejected") {
+      console.warn("Session could not be loaded.", sessionResult.reason);
+      currentMember = null;
     }
     renderWireArchive(sortedWirePosts());
     return;
   }
 
-  const [cmsResult, wireResult] = await Promise.allSettled([loadCmsTrip(), loadWire()]);
+  const [cmsResult, wireResult, sessionResult] = await Promise.allSettled([loadCmsTrip(), loadWire(), loadSession()]);
 
   if (cmsResult.status === "rejected") {
     console.warn("Using fallback trip data because CMS loading failed.", cmsResult.reason);
@@ -1484,6 +1506,11 @@ async function init() {
   if (wireResult.status === "rejected") {
     console.warn("The 808 Wire could not be loaded.", wireResult.reason);
     wirePosts = fallbackWirePosts;
+  }
+
+  if (sessionResult.status === "rejected") {
+    console.warn("Session could not be loaded.", sessionResult.reason);
+    currentMember = null;
   }
 
   renderAll();
