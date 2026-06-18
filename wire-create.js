@@ -105,12 +105,20 @@ async function postJson(url, body) {
   const data = contentType.includes("application/json") ? await response.json().catch(() => ({})) : {};
   const text = contentType.includes("application/json") ? "" : await response.text().catch(() => "");
   if (!response.ok) {
-    const localApiHint =
-      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-        ? " Local static preview cannot run Cloudflare API functions; use https://808classic.com/wire-create.html or run a Pages dev server."
-        : "";
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const gotHtml = contentType.includes("text/html") || text.trim().startsWith("<!DOCTYPE html");
+    if (isLocal) {
+      throw new Error(
+        "Local static preview cannot run Cloudflare API functions. Use https://808classic.com/wire-create.html or run a Pages dev server.",
+      );
+    }
+    if (gotHtml) {
+      throw new Error(
+        "The API returned an HTML page instead of JSON. Check that the Cloudflare Function is deployed and that your Access session is active.",
+      );
+    }
     const message = data.error || text.slice(0, 180).trim() || `Request failed (${response.status}).`;
-    throw new Error(`${message}${localApiHint}`);
+    throw new Error(message);
   }
   return data;
 }
