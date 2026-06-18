@@ -34,11 +34,12 @@ export async function supabaseRequest(env, path, options = {}) {
 }
 
 function storageObjectUrl(env, bucket, path) {
+  const baseUrl = String(env.SUPABASE_URL || "").replace(/\/$/, "");
   const encodedPath = path
     .split("/")
     .map((part) => encodeURIComponent(part))
     .join("/");
-  return `${env.SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
+  return `${baseUrl}/storage/v1/object/${bucket}/${encodedPath}`;
 }
 
 export async function uploadStorageObject(env, bucket, path, bytes, mimeType) {
@@ -83,5 +84,10 @@ export async function createSignedStorageUrl(env, bucket, path, expiresIn = 60 *
   }
 
   const signedUrl = data?.signedURL || data?.signedUrl || "";
-  return signedUrl.startsWith("http") ? signedUrl : `${env.SUPABASE_URL}${signedUrl}`;
+  if (signedUrl.startsWith("http")) return signedUrl;
+
+  const baseUrl = String(env.SUPABASE_URL || "").replace(/\/$/, "");
+  if (signedUrl.startsWith("/storage/v1/")) return `${baseUrl}${signedUrl}`;
+  if (signedUrl.startsWith("/object/")) return `${baseUrl}/storage/v1${signedUrl}`;
+  return `${baseUrl}/storage/v1/${signedUrl.replace(/^\//, "")}`;
 }

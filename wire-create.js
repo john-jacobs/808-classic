@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-wire-manage1";
+const APP_VERSION = "20260618-wire-mediafix1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -140,12 +140,23 @@ function renderDraft(draft) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+  const media = selectedImages
+    .map(
+      (image, index) => `
+        <figure>
+          <img src="${image.data_url}" alt="${escapeHtml(draftCaptionForImage(image, index))}" />
+          <figcaption>${escapeHtml(draftCaptionForImage(image, index))}</figcaption>
+        </figure>
+      `,
+    )
+    .join("");
 
   draftPreview.innerHTML = `
     <p class="wire-label">${escapeHtml(draft.metadata?.kind || "Dispatch")}</p>
     <h3>${escapeHtml(draft.headline || "Untitled dispatch")}</h3>
     ${draft.dek ? `<p class="wire-dek">${escapeHtml(draft.dek)}</p>` : ""}
     ${draft.location ? `<p class="wire-byline">By ${escapeHtml(draft.byline || "808 Wire Staff")} · ${escapeHtml(draft.location)}</p>` : ""}
+    ${media ? `<div class="wire-draft-media">${media}</div>` : ""}
     <div class="wire-copy">
       ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
     </div>

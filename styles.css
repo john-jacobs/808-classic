@@ -1114,6 +1114,35 @@ h2 {
   line-height: 0.98;
 }
 
+.wire-draft-media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.wire-draft-media figure {
+  min-width: 0;
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.wire-draft-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.wire-draft-media figcaption {
+  padding: 8px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .wire-dialog {
   width: min(1080px, calc(100% - 30px));
   max-height: min(88vh, 940px);
