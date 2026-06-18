@@ -19,9 +19,13 @@ SUPABASE_URL=https://vjbjzgjudqnrtjipojds.supabase.co
 SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SECRET_KEY
 SUPABASE_GROUP_ID=80800000-0000-4000-8000-000000000001
 SUPABASE_TRIP_ID=80800000-0000-4000-8000-000000002026
+OPENAI_API_KEY=YOUR_SERVER_ONLY_OPENAI_KEY
+OPENAI_MODEL=gpt-5.5
 ```
 
 Never create a variable whose name exposes `SUPABASE_SECRET_KEY` to browser code.
+The OpenAI key is also server-only and is used by `/api/wire-drafts` to generate
+private 808 Wire article drafts from member submissions.
 
 ## Initial Provisioning
 

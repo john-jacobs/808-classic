@@ -422,6 +422,7 @@ let wirePosts = fallbackWirePosts;
 
 const leaderboard = document.querySelector("#leaderboard");
 const wireFeed = document.querySelector("#wireFeed");
+const wireArchive = document.querySelector("#wireArchive");
 const wireDate = document.querySelector("#wireDate");
 const travelRows = document.querySelector("#travelRows");
 const lodgingGrid = document.querySelector("#lodgingGrid");
@@ -437,8 +438,12 @@ const wireDialogContent = document.querySelector("#wireDialogContent");
 const guestsGrid = document.querySelector("#guestsGrid");
 const navLinks = [...document.querySelectorAll(".nav-links a")];
 const navSections = navLinks
-  .map((link) => document.querySelector(link.getAttribute("href")))
+  .map((link) => {
+    const href = link.getAttribute("href") || "";
+    return href.startsWith("#") ? document.querySelector(href) : null;
+  })
   .filter(Boolean);
+const isWireArchivePage = document.body.dataset.page === "wire-archive";
 const countdownTarget = new Date("2026-07-16T16:00:00-07:00").getTime();
 const countdownEls = {
   days: document.querySelector("#countdownDays"),
@@ -620,6 +625,7 @@ function copyAddressMarkup(address) {
 }
 
 function updateCountdown() {
+  if (!countdownEls.days || !countdownEls.hours || !countdownEls.minutes || !countdownEls.seconds) return;
   const remaining = Math.max(0, countdownTarget - Date.now());
   const totalSeconds = Math.floor(remaining / 1000);
   const days = Math.floor(totalSeconds / 86400);
@@ -742,23 +748,13 @@ function renderWire() {
   wireDate.textContent = latestDate ? `Latest: ${latestDate}` : "Latest dispatch";
 
   wireFeed.innerHTML = `
-    <div class="wire-desk ${posts.length === 1 ? "solo" : ""}">
+    <div class="wire-desk solo">
       ${renderWireCard(featured, 0, true)}
-      ${
-        archivedPosts.length
-          ? `<aside class="wire-rail" aria-label="More Wire updates">
-              <div class="wire-rail-head">
-                <span>Previous reports</span>
-                <strong>${archivedPosts.length}</strong>
-              </div>
-              <div class="wire-list">
-                ${archivedPosts.map((post, index) => renderWireCard(post, index + 1, false)).join("")}
-              </div>
-            </aside>`
-          : ""
-      }
+      ${archivedPosts.length ? `<a class="wire-archive-link" href="./wire.html">Previous wires <span>${archivedPosts.length}</span></a>` : ""}
     </div>
   `;
+
+  renderWireArchive(posts);
 }
 
 function renderWireCard(post, index, featured = false) {
@@ -781,6 +777,42 @@ function renderWireCard(post, index, featured = false) {
         <p>${escapeHtml(wireExcerpt(post, featured ? 210 : 118))}</p>
         ${renderWireScoreSummary(scores)}
         <button type="button" data-wire-post="${index}">${featured ? "Read report" : "Open"}</button>
+      </div>
+    </article>
+  `;
+}
+
+function renderWireArchive(posts = sortedWirePosts()) {
+  const archivedPosts = posts.slice(1);
+  if (!wireArchive) return;
+
+  if (!archivedPosts.length) {
+    wireArchive.innerHTML = `<p class="wire-archive-empty">No earlier dispatches yet.</p>`;
+    return;
+  }
+
+  wireArchive.innerHTML = archivedPosts.map((post, index) => renderWireArchiveItem(post, index + 1)).join("");
+}
+
+function renderWireArchiveItem(post, index) {
+  const metadata = post.metadata || {};
+  const media = sortedWireMedia(post);
+  const image = media[0]?.storage_path;
+  const scores = metadata.scorecard || [];
+  const published = formatWireDate(post.published_at || post.created_at);
+
+  return `
+    <article class="wire-archive-item">
+      ${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async" />` : ""}
+      <div class="wire-archive-copy">
+        <div class="wire-card-meta">
+          <span>${escapeHtml(wireTypeLabel(post.type))}</span>
+          ${published ? `<time>${escapeHtml(published)}</time>` : ""}
+        </div>
+        <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
+        <p>${escapeHtml(wireExcerpt(post, 180))}</p>
+        ${renderWireScoreSummary(scores)}
+        <button type="button" data-wire-post="${index}">Read report</button>
       </div>
     </article>
   `;
@@ -1128,21 +1160,28 @@ async function copyText(text) {
   textArea.remove();
 }
 
-navLinks.forEach((link) => link.addEventListener("click", () => setActiveNav(link.getAttribute("href").slice(1))));
+navLinks.forEach((link) =>
+  link.addEventListener("click", () => {
+    const href = link.getAttribute("href") || "";
+    if (href.startsWith("#")) setActiveNav(href.slice(1));
+  }),
+);
 document.addEventListener("scroll", updateActiveNav, { passive: true });
 window.addEventListener("resize", updateActiveNav);
 
-courseTabs.addEventListener("click", (event) => {
-  const tab = event.target.closest(".tab");
-  if (!tab) return;
-  document.querySelectorAll(".tab").forEach((item) => {
-    item.classList.remove("active");
-    item.setAttribute("aria-selected", "false");
+if (courseTabs) {
+  courseTabs.addEventListener("click", (event) => {
+    const tab = event.target.closest(".tab");
+    if (!tab) return;
+    document.querySelectorAll(".tab").forEach((item) => {
+      item.classList.remove("active");
+      item.setAttribute("aria-selected", "false");
+    });
+    tab.classList.add("active");
+    tab.setAttribute("aria-selected", "true");
+    renderCourse(Number(tab.dataset.course));
   });
-  tab.classList.add("active");
-  tab.setAttribute("aria-selected", "true");
-  renderCourse(Number(tab.dataset.course));
-});
+}
 
 document.body.addEventListener("click", (event) => {
   const copyTarget = event.target.closest("[data-copy]");
@@ -1199,7 +1238,7 @@ document.querySelectorAll(".dialog-close").forEach((button) => {
 });
 
 updateCountdown();
-setInterval(updateCountdown, 1000);
+if (countdownEls.days) setInterval(updateCountdown, 1000);
 
 function renderAll() {
   renderSiteCopy();
@@ -1216,6 +1255,16 @@ function renderAll() {
 }
 
 async function init() {
+  if (isWireArchivePage) {
+    const wireResult = await Promise.allSettled([loadWire()]);
+    if (wireResult[0].status === "rejected") {
+      console.warn("The 808 Wire could not be loaded.", wireResult[0].reason);
+      wirePosts = fallbackWirePosts;
+    }
+    renderWireArchive(sortedWirePosts());
+    return;
+  }
+
   const [cmsResult, wireResult] = await Promise.allSettled([loadCmsTrip(), loadWire()]);
 
   if (cmsResult.status === "rejected") {

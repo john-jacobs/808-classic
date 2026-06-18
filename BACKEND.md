@@ -30,6 +30,7 @@ use the server-only Supabase secret key after checking group membership.
 | `/api/session` | GET | Return the current 808 member and active trip |
 | `/api/tournament` | GET | Return the configured Tournament Central page |
 | `/api/feed` | GET | Return the active trip's latest posts |
+| `/api/wire-drafts` | POST | Generate a structured 808 Wire article draft from notes and image inputs |
 | `/api/posts` | POST | Create a feed post |
 | `/api/comments` | POST | Comment on a post in the active trip |
 | `/api/reactions` | POST / DELETE | Add or remove an 808-specific reaction |
@@ -54,3 +55,16 @@ The first visible feature should be the live feed:
 3. comments and 808-specific reactions
 4. photo upload with signed private-media URLs
 5. score entry and automatic score-update posts
+
+## Wire Drafting
+
+`/wire-create.html` lets an authenticated member paste raw notes, add a course or
+result, attach images, and ask `/api/wire-drafts` for a structured article draft.
+The draft generator uses the OpenAI Responses API with a strict JSON schema so
+the frontend receives `headline`, `dek`, `body`, `location`, `metadata`, and
+image-caption suggestions in the same shape used by the 808 Wire renderer.
+
+The current UI can publish the generated text and metadata through `/api/posts`.
+Permanent image upload/attachment is intentionally left for the next step:
+Supabase already has the private `trip-media` bucket, but the app still needs a
+signed upload endpoint and post-media persistence flow.

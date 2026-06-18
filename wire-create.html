@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create Wire | 808 Classic</title>
+    <meta name="description" content="Create an 808 Wire dispatch." />
+    <meta name="theme-color" content="#ff5f05" />
+    <link rel="canonical" href="https://808classic.com/wire-create.html" />
+    <link rel="icon" href="./assets/favicon.ico" sizes="any" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css?v=20260618-wire-create" />
+  </head>
+  <body class="wire-create-body">
+    <header class="topbar" aria-label="808 Classic primary navigation">
+      <a class="brand" href="./index.html#overview" aria-label="808 Classic home">
+        <span class="brand-mark">808</span>
+        <span>
+          <strong>808 Classic</strong>
+          <small>Official Tournament Operations</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="./index.html#wire">Wire</a>
+        <a href="./wire.html">Previous</a>
+        <a href="./index.html#leaderboard-section">Leaderboard</a>
+        <a href="./index.html#events">Schedule</a>
+        <a href="./index.html#attendees">Field</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section wire-create">
+        <div class="section-head split">
+          <h2>Create Wire</h2>
+          <a class="section-link" href="./index.html#wire">Back to Wire</a>
+        </div>
+
+        <div class="wire-create-grid">
+          <form id="wireCreateForm" class="wire-create-form">
+            <label>
+              Notes
+              <textarea id="wireNotes" name="notes" rows="10" placeholder="Paste group chat chaos, scorecard notes, quotes, allegations, course context..."></textarea>
+            </label>
+            <div class="wire-form-row">
+              <label>
+                Course / location
+                <input id="wireLocation" name="location" type="text" placeholder="Big Run Golf Club, Lockport, IL" />
+              </label>
+              <label>
+                Result
+                <input id="wireResult" name="result" type="text" placeholder="Chuck 117, Benjamin 119" />
+              </label>
+            </div>
+            <label>
+              Images
+              <input id="wireImages" name="images" type="file" accept="image/*" multiple />
+            </label>
+            <div id="wireImagePreview" class="wire-image-preview"></div>
+            <div class="wire-create-actions">
+              <button type="submit">Generate Draft</button>
+              <button id="wirePublishBtn" type="button" disabled>Publish Draft</button>
+            </div>
+            <p id="wireCreateStatus" class="wire-create-status" role="status"></p>
+          </form>
+
+          <article id="wireDraftPreview" class="wire-draft-preview" aria-live="polite">
+            <p class="wire-label">Draft preview</p>
+            <h3>No draft yet.</h3>
+            <p class="wire-dek">Submit notes and images to generate the first version.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="./wire-create.js?v=20260618-wire-create"></script>
+  </body>
+</html>
