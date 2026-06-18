@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-cacheguard1";
+const APP_VERSION = "20260618-wirecreate-debug1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -101,8 +101,17 @@ async function postJson(url, body) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Request failed");
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json") ? await response.json().catch(() => ({})) : {};
+  const text = contentType.includes("application/json") ? "" : await response.text().catch(() => "");
+  if (!response.ok) {
+    const localApiHint =
+      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? " Local static preview cannot run Cloudflare API functions; use https://808classic.com/wire-create.html or run a Pages dev server."
+        : "";
+    const message = data.error || text.slice(0, 180).trim() || `Request failed (${response.status}).`;
+    throw new Error(`${message}${localApiHint}`);
+  }
   return data;
 }
 
