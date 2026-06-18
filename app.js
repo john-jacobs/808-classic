@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260618-wirecreate-media1";
+const APP_VERSION = "20260618-wire-manage1";
 
 const fallbackTrip = {
   players: [
@@ -608,6 +608,18 @@ async function loadWire() {
   wirePosts = data.posts || [];
 }
 
+async function postJson(url, options = {}) {
+  const response = await fetch(url, {
+    headers: { "content-type": "application/json", ...(options.headers || {}) },
+    credentials: "same-origin",
+    ...options,
+  });
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json") ? await response.json().catch(() => ({})) : {};
+  if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+  return data;
+}
+
 function initials(name) {
   return name
     .split(" ")
@@ -852,6 +864,10 @@ function renderWireStory(post) {
 
   return `
     <article class="wire-story">
+      <div class="wire-manage-actions">
+        <button type="button" data-wire-edit="${escapeHtml(post.id)}">Edit</button>
+        <button type="button" class="danger" data-wire-delete="${escapeHtml(post.id)}">Delete</button>
+      </div>
       <header class="wire-story-head">
         <p class="wire-label">${escapeHtml(wireTypeLabel(post.type))}</p>
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
@@ -915,12 +931,129 @@ function renderWireStory(post) {
   `;
 }
 
+function datetimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function renderWireEditForm(post) {
+  return `
+    <form class="wire-edit-form" data-wire-edit-form="${escapeHtml(post.id)}">
+      <div class="wire-edit-head">
+        <p class="wire-label">Edit dispatch</p>
+        <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
+      </div>
+      <label>
+        Headline
+        <input name="headline" type="text" maxlength="160" value="${escapeHtml(post.headline || "")}" />
+      </label>
+      <label>
+        Dek
+        <textarea name="dek" rows="3" maxlength="260">${escapeHtml(post.dek || "")}</textarea>
+      </label>
+      <div class="wire-edit-row">
+        <label>
+          Location
+          <input name="location" type="text" value="${escapeHtml(post.location || "")}" />
+        </label>
+        <label>
+          Byline
+          <input name="byline" type="text" value="${escapeHtml(post.byline || "808 Wire Staff")}" />
+        </label>
+      </div>
+      <label>
+        Published
+        <input name="published_at" type="datetime-local" value="${escapeHtml(datetimeLocalValue(post.published_at || post.created_at))}" />
+      </label>
+      <label>
+        Body
+        <textarea name="body" rows="14" maxlength="5000">${escapeHtml(post.body || "")}</textarea>
+      </label>
+      <div class="wire-edit-actions">
+        <button type="submit">Save Changes</button>
+        <button type="button" data-wire-cancel-edit="${escapeHtml(post.id)}">Cancel</button>
+      </div>
+      <p class="wire-edit-status" role="status"></p>
+    </form>
+  `;
+}
+
 function openWirePost(index) {
   const posts = sortedWirePosts();
   const post = posts[index];
   if (!post) return;
   wireDialogContent.innerHTML = renderWireStory(post);
   wireDialog.showModal();
+}
+
+function openWirePostById(postId) {
+  const index = sortedWirePosts().findIndex((post) => post.id === postId);
+  if (index >= 0) openWirePost(index);
+}
+
+function openWireEdit(postId) {
+  const post = wirePosts.find((item) => item.id === postId);
+  if (!post) return;
+  wireDialogContent.innerHTML = renderWireEditForm(post);
+  wireDialog.showModal();
+}
+
+async function refreshWireAfterManage(postId = "") {
+  await loadWire();
+  renderWire();
+  if (postId) openWirePostById(postId);
+}
+
+async function saveWireEdit(form) {
+  const postId = form.dataset.wireEditForm;
+  const post = wirePosts.find((item) => item.id === postId);
+  if (!post) return;
+  const status = form.querySelector(".wire-edit-status");
+  const formData = new FormData(form);
+  const publishedValue = String(formData.get("published_at") || "");
+  const publishedAt = publishedValue ? new Date(publishedValue).toISOString() : post.published_at;
+
+  status.textContent = "Saving...";
+  form.querySelectorAll("button, input, textarea").forEach((control) => {
+    control.disabled = true;
+  });
+
+  try {
+    await postJson(`/api/posts?id=${encodeURIComponent(postId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        type: post.type || "dispatch",
+        headline: formData.get("headline"),
+        dek: formData.get("dek"),
+        byline: formData.get("byline"),
+        location: formData.get("location"),
+        published_at: publishedAt,
+        body: formData.get("body"),
+        metadata: post.metadata || {},
+      }),
+    });
+    status.textContent = "Saved.";
+    await refreshWireAfterManage(postId);
+  } catch (error) {
+    status.textContent = error.message;
+    form.querySelectorAll("button, input, textarea").forEach((control) => {
+      control.disabled = false;
+    });
+  }
+}
+
+async function deleteWirePost(postId) {
+  const post = wirePosts.find((item) => item.id === postId);
+  if (!post) return;
+  const confirmed = window.confirm(`Delete "${post.headline || "this Wire post"}"?`);
+  if (!confirmed) return;
+
+  await postJson(`/api/posts?id=${encodeURIComponent(postId)}`, { method: "DELETE" });
+  wireDialog.close();
+  await refreshWireAfterManage();
 }
 
 function renderLeaderboard() {
@@ -1219,6 +1352,26 @@ document.body.addEventListener("click", (event) => {
     return;
   }
 
+  const editTarget = event.target.closest("[data-wire-edit]");
+  if (editTarget) {
+    openWireEdit(editTarget.dataset.wireEdit);
+    return;
+  }
+
+  const cancelEditTarget = event.target.closest("[data-wire-cancel-edit]");
+  if (cancelEditTarget) {
+    openWirePostById(cancelEditTarget.dataset.wireCancelEdit);
+    return;
+  }
+
+  const deleteTarget = event.target.closest("[data-wire-delete]");
+  if (deleteTarget) {
+    deleteWirePost(deleteTarget.dataset.wireDelete).catch((error) => {
+      window.alert(error.message);
+    });
+    return;
+  }
+
   const wireTarget = event.target.closest("[data-wire-post]");
   if (wireTarget) {
     openWirePost(Number(wireTarget.dataset.wirePost));
@@ -1244,6 +1397,29 @@ document.body.addEventListener("keydown", (event) => {
     return;
   }
 
+  const editTarget = event.target.closest("[data-wire-edit]");
+  if (editTarget) {
+    event.preventDefault();
+    openWireEdit(editTarget.dataset.wireEdit);
+    return;
+  }
+
+  const cancelEditTarget = event.target.closest("[data-wire-cancel-edit]");
+  if (cancelEditTarget) {
+    event.preventDefault();
+    openWirePostById(cancelEditTarget.dataset.wireCancelEdit);
+    return;
+  }
+
+  const deleteTarget = event.target.closest("[data-wire-delete]");
+  if (deleteTarget) {
+    event.preventDefault();
+    deleteWirePost(deleteTarget.dataset.wireDelete).catch((error) => {
+      window.alert(error.message);
+    });
+    return;
+  }
+
   const wireTarget = event.target.closest("[data-wire-post]");
   if (wireTarget) {
     event.preventDefault();
@@ -1255,6 +1431,13 @@ document.body.addEventListener("keydown", (event) => {
   if (!button) return;
   event.preventDefault();
   openBio(Number(button.dataset.player));
+});
+
+document.body.addEventListener("submit", (event) => {
+  const editForm = event.target.closest("[data-wire-edit-form]");
+  if (!editForm) return;
+  event.preventDefault();
+  saveWireEdit(editForm);
 });
 
 document.querySelectorAll(".dialog-close").forEach((button) => {

@@ -1131,6 +1131,90 @@ h2 {
   padding: 36px;
 }
 
+.wire-manage-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: -12px 0 16px;
+}
+
+.wire-manage-actions button,
+.wire-edit-actions button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--navy);
+  background: #fff;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wire-manage-actions .danger {
+  color: #b42318;
+}
+
+.wire-edit-form {
+  display: grid;
+  gap: 16px;
+  padding: 32px;
+  background: var(--paper);
+}
+
+.wire-edit-head h3 {
+  margin: 6px 0 0;
+  color: var(--navy);
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 1;
+}
+
+.wire-edit-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--orange-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wire-edit-form input,
+.wire-edit-form textarea {
+  width: 100%;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  font: 600 0.98rem/1.5 Inter, system-ui, sans-serif;
+  padding: 12px;
+  text-transform: none;
+}
+
+.wire-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.wire-edit-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.wire-edit-actions button:first-child {
+  color: #fff;
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+.wire-edit-status {
+  min-height: 20px;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .history-panel {
   display: grid;
   grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
