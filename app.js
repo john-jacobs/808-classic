@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260618-wirecreate-compress1";
+const APP_VERSION = "20260618-wirecreate-media1";
 
 const fallbackTrip = {
   players: [
@@ -724,6 +724,9 @@ function wireMediaCaption(item = {}, index = 0, post = {}) {
   if (present(item.caption)) return item.caption;
   const mediaCaptions = post.metadata?.media_captions || {};
   if (present(mediaCaptions[item.storage_path])) return mediaCaptions[item.storage_path];
+  if (present(item.original_storage_path) && present(mediaCaptions[item.original_storage_path])) {
+    return mediaCaptions[item.original_storage_path];
+  }
   const scores = post.metadata?.scorecard || [];
   if (index === 0 && scores.length >= 2) {
     return `Final card · ${scores[0].name.split(" ")[0]} ${scores[0].total}, ${scores[1].name.split(" ")[0]} ${scores[1].total}`;

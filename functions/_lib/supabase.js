@@ -10,6 +10,7 @@ export async function supabaseRequest(env, path, options = {}) {
 
   const headers = new Headers(options.headers || {});
   headers.set("apikey", env.SUPABASE_SECRET_KEY);
+  headers.set("authorization", `Bearer ${env.SUPABASE_SECRET_KEY}`);
   if (!env.SUPABASE_SECRET_KEY.startsWith("sb_secret_")) {
     headers.set("authorization", `Bearer ${env.SUPABASE_SECRET_KEY}`);
   }
@@ -30,4 +31,57 @@ export async function supabaseRequest(env, path, options = {}) {
   }
 
   return data;
+}
+
+function storageObjectUrl(env, bucket, path) {
+  const encodedPath = path
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
+  return `${env.SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
+}
+
+export async function uploadStorageObject(env, bucket, path, bytes, mimeType) {
+  assertBackendEnv(env);
+
+  const response = await fetch(storageObjectUrl(env, bucket, path), {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_SECRET_KEY,
+      authorization: `Bearer ${env.SUPABASE_SECRET_KEY}`,
+      "content-type": mimeType,
+      "x-upsert": "true",
+    },
+    body: bytes,
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || `Storage upload failed: ${response.status}`);
+  }
+  return data;
+}
+
+export async function createSignedStorageUrl(env, bucket, path, expiresIn = 60 * 60 * 24) {
+  assertBackendEnv(env);
+
+  const response = await fetch(`${storageObjectUrl(env, bucket, path).replace("/object/", "/object/sign/")}`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_SECRET_KEY,
+      authorization: `Bearer ${env.SUPABASE_SECRET_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ expiresIn }),
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || `Signed URL creation failed: ${response.status}`);
+  }
+
+  const signedUrl = data?.signedURL || data?.signedUrl || "";
+  return signedUrl.startsWith("http") ? signedUrl : `${env.SUPABASE_URL}${signedUrl}`;
 }

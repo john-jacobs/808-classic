@@ -1,7 +1,34 @@
 import { withApiErrors } from "../_lib/handler.js";
 import { json } from "../_lib/http.js";
 import { requireMember } from "../_lib/member.js";
-import { supabaseRequest } from "../_lib/supabase.js";
+import { createSignedStorageUrl, supabaseRequest } from "../_lib/supabase.js";
+
+function needsSignedUrl(path = "") {
+  return path && !path.startsWith(".") && !path.startsWith("http") && !path.startsWith("data:");
+}
+
+async function signPostMedia(env, posts) {
+  return Promise.all(
+    posts.map(async (post) => ({
+      ...post,
+      media: await Promise.all(
+        (post.media || []).map(async (item) => {
+          if (!needsSignedUrl(item.storage_path)) return item;
+          try {
+            return {
+              ...item,
+              original_storage_path: item.storage_path,
+              storage_path: await createSignedStorageUrl(env, "trip-media", item.storage_path),
+            };
+          } catch (error) {
+            console.warn("Media signing failed.", error);
+            return item;
+          }
+        }),
+      ),
+    })),
+  );
+}
 
 export const onRequestGet = withApiErrors(async (context) => {
   await requireMember(context);
@@ -29,5 +56,5 @@ export const onRequestGet = withApiErrors(async (context) => {
     `/rest/v1/posts?trip_id=eq.${context.env.SUPABASE_TRIP_ID}&select=${encodeURIComponent(select)}&order=pinned.desc,created_at.desc&limit=50`,
   );
 
-  return json({ posts });
+  return json({ posts: await signPostMedia(context.env, posts) });
 });

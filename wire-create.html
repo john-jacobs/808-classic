@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260618-wirecreate-compress1" />
+    <link rel="stylesheet" href="./styles.css?v=20260618-wirecreate-media1" />
   </head>
   <body class="wire-create-body">
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -65,8 +65,13 @@
               <input id="wireImages" name="images" type="file" accept="image/*" multiple />
             </label>
             <div id="wireImagePreview" class="wire-image-preview"></div>
+            <label class="wire-revision-field">
+              Revision notes
+              <textarea id="wireRevision" name="revision" rows="4" placeholder="Tell the desk what to tighten, add, remove, or make meaner before publishing."></textarea>
+            </label>
             <div class="wire-create-actions">
               <button type="submit">Generate Draft</button>
+              <button id="wireReviseBtn" type="button" disabled>Revise Draft</button>
               <button id="wirePublishBtn" type="button" disabled>Publish Draft</button>
             </div>
             <p id="wireCreateStatus" class="wire-create-status" role="status"></p>
@@ -81,6 +86,6 @@
       </section>
     </main>
 
-    <script src="./wire-create.js?v=20260618-wirecreate-compress1"></script>
+    <script src="./wire-create.js?v=20260618-wirecreate-media1"></script>
   </body>
 </html>

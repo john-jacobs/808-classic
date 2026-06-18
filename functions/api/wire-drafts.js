@@ -144,6 +144,8 @@ async function generateWireDraft(env, input, member, contextData) {
     course_or_location: cleanString(input.location, 240),
     score_or_result: cleanString(input.result, 1000),
     image_notes: images.map(({ index, name, caption }) => ({ index, name, caption })),
+    revision_notes: cleanString(input.revision, 2500),
+    previous_draft: input.previousDraft && typeof input.previousDraft === "object" ? input.previousDraft : null,
   };
 
   if (!userText.notes && !images.length) throw Object.assign(new Error("Add notes or at least one image"), { status: 400 });
@@ -160,7 +162,7 @@ async function generateWireDraft(env, input, member, contextData) {
           voice:
             "Overly official golf-trip journalism. Funny, dry, specific, and lightly grandiose. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
           output_rules:
-            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Prefer dispatch/match_report as metadata.kind.",
+            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Prefer dispatch/match_report as metadata.kind. Treat attached images as evidence: mention visually relevant details when useful, generate useful media_captions by image index, and do not ignore scorecards or screenshots. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over.",
         },
         null,
         2,

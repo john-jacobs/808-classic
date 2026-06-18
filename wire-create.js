@@ -1,12 +1,14 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-wirecreate-compress1";
+const APP_VERSION = "20260618-wirecreate-media1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
 const imageInput = document.querySelector("#wireImages");
 const imagePreview = document.querySelector("#wireImagePreview");
+const revisionInput = document.querySelector("#wireRevision");
 const draftPreview = document.querySelector("#wireDraftPreview");
 const statusEl = document.querySelector("#wireCreateStatus");
+const reviseBtn = document.querySelector("#wireReviseBtn");
 const publishBtn = document.querySelector("#wirePublishBtn");
 
 let selectedImages = [];
@@ -37,6 +39,17 @@ ensureFreshAppVersion();
 function setStatus(message, tone = "") {
   statusEl.textContent = message;
   statusEl.dataset.tone = tone;
+}
+
+function setWorking(isWorking, message = "") {
+  form.dataset.working = isWorking ? "true" : "false";
+  form.querySelectorAll("button, textarea, input").forEach((control) => {
+    if (control === publishBtn || control === reviseBtn) return;
+    control.disabled = isWorking;
+  });
+  reviseBtn.disabled = isWorking || !currentDraft;
+  publishBtn.disabled = isWorking || !currentDraft;
+  if (message) setStatus(message, isWorking ? "working" : "");
 }
 
 function escapeHtml(value) {
@@ -97,6 +110,8 @@ async function prepareImage(file) {
   return {
     name: file.name,
     type: "image/jpeg",
+    width,
+    height,
     original_size: file.size,
     compressed_size: blob.size,
     data_url: await blobToDataUrl(blob),
@@ -170,8 +185,31 @@ async function postJson(url, body) {
   return data;
 }
 
+function draftCaptionForImage(image, index) {
+  const caption = (currentDraft?.media_captions || []).find((item) => Number(item.index) === index)?.caption;
+  return caption || image.name || `Wire image ${index + 1}`;
+}
+
+async function generateDraft({ revision = "" } = {}) {
+  setWorking(true, revision ? "Revising draft with the desk..." : "Generating draft with the desk...");
+
+  const { draft } = await postJson("/api/wire-drafts", {
+    notes: notes.value,
+    location: locationInput.value,
+    result: resultInput.value,
+    images: selectedImages,
+    previousDraft: revision ? currentDraft : null,
+    revision,
+  });
+
+  currentDraft = draft;
+  renderDraft(draft);
+  setWorking(false);
+  setStatus(revision ? "Draft revised. Review before publishing." : "Draft generated. Review before publishing.", "success");
+}
+
 imageInput.addEventListener("change", async () => {
-  setStatus("Reading images...");
+  setWorking(true, "Reading and compressing images...");
   try {
     selectedImages = await prepareImages(imageInput.files || []);
     renderImagePreview();
@@ -190,35 +228,41 @@ imageInput.addEventListener("change", async () => {
     selectedImages = [];
     renderImagePreview();
     setStatus(error.message, "error");
+  } finally {
+    setWorking(false);
   }
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  publishBtn.disabled = true;
   currentDraft = null;
-  setStatus("Generating draft...");
-
   try {
-    const { draft } = await postJson("/api/wire-drafts", {
-      notes: notes.value,
-      location: locationInput.value,
-      result: resultInput.value,
-      images: selectedImages,
-    });
-    currentDraft = draft;
-    renderDraft(draft);
-    publishBtn.disabled = false;
-    setStatus("Draft generated.", "success");
+    await generateDraft();
   } catch (error) {
+    setWorking(false);
+    setStatus(error.message, "error");
+  }
+});
+
+reviseBtn.addEventListener("click", async () => {
+  if (!currentDraft) return;
+  const revision = revisionInput.value.trim();
+  if (!revision) {
+    setStatus("Add revision notes first.", "error");
+    revisionInput.focus();
+    return;
+  }
+  try {
+    await generateDraft({ revision });
+  } catch (error) {
+    setWorking(false);
     setStatus(error.message, "error");
   }
 });
 
 publishBtn.addEventListener("click", async () => {
   if (!currentDraft) return;
-  publishBtn.disabled = true;
-  setStatus("Publishing draft...");
+  setWorking(true, "Publishing draft and media...");
 
   try {
     await postJson("/api/posts", {
@@ -230,11 +274,19 @@ publishBtn.addEventListener("click", async () => {
       published_at: currentDraft.published_at,
       body: currentDraft.body,
       metadata: currentDraft.metadata || {},
+      media: selectedImages.map((image, index) => ({
+        data_url: image.data_url,
+        type: image.type,
+        width: image.width,
+        height: image.height,
+        caption: draftCaptionForImage(image, index),
+        sort_order: index,
+      })),
     });
     setStatus("Published.", "success");
     window.location.href = "./index.html#wire";
   } catch (error) {
-    publishBtn.disabled = false;
+    setWorking(false);
     setStatus(error.message, "error");
   }
 });
