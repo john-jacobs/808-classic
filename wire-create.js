@@ -99,6 +99,7 @@ async function postJson(url, body) {
   const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
+    credentials: "same-origin",
     body: JSON.stringify(body),
   });
   const contentType = response.headers.get("content-type") || "";
@@ -106,11 +107,15 @@ async function postJson(url, body) {
   const text = contentType.includes("application/json") ? "" : await response.text().catch(() => "");
   if (!response.ok) {
     const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const accessRedirect = response.redirected || response.url.includes("cloudflareaccess.com");
     const gotHtml = contentType.includes("text/html") || text.trim().startsWith("<!DOCTYPE html");
     if (isLocal) {
       throw new Error(
         "Local static preview cannot run Cloudflare API functions. Use https://808classic.com/wire-create.html or run a Pages dev server.",
       );
+    }
+    if (accessRedirect) {
+      throw new Error("Your Cloudflare Access session expired or is missing. Re-open 808classic.com, log in, then try again.");
     }
     if (gotHtml) {
       throw new Error(
