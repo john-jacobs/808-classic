@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-wirecreate-authfix1";
+const APP_VERSION = "20260618-wirecreate-compress1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -46,23 +46,65 @@ function escapeHtml(value) {
   });
 }
 
-function fileToDataUrl(file) {
+const MAX_IMAGE_DIMENSION = 1800;
+const IMAGE_QUALITY = 0.78;
+
+function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
     reader.onerror = () => reject(reader.error || new Error("Image could not be read"));
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
 }
 
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`${file.name} could not be loaded as an image.`));
+    };
+    image.src = url;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image could not be compressed."))), type, quality);
+  });
+}
+
+async function prepareImage(file) {
+  const image = await loadImage(file);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await canvasToBlob(canvas, "image/jpeg", IMAGE_QUALITY);
+  return {
+    name: file.name,
+    type: "image/jpeg",
+    original_size: file.size,
+    compressed_size: blob.size,
+    data_url: await blobToDataUrl(blob),
+  };
+}
+
 async function prepareImages(files) {
-  return Promise.all(
-    [...files].slice(0, 6).map(async (file) => ({
-      name: file.name,
-      type: file.type,
-      data_url: await fileToDataUrl(file),
-    })),
-  );
+  return Promise.all([...files].slice(0, 6).map(prepareImage));
 }
 
 function renderImagePreview() {
@@ -119,7 +161,7 @@ async function postJson(url, body) {
     }
     if (gotHtml) {
       throw new Error(
-        "The API returned an HTML page instead of JSON. Check that the Cloudflare Function is deployed and that your Access session is active.",
+        "The API returned an HTML page instead of JSON. Your Access session may be stale, or the upload may still be too large.",
       );
     }
     const message = data.error || text.slice(0, 180).trim() || `Request failed (${response.status}).`;
@@ -130,9 +172,25 @@ async function postJson(url, body) {
 
 imageInput.addEventListener("change", async () => {
   setStatus("Reading images...");
-  selectedImages = await prepareImages(imageInput.files || []);
-  renderImagePreview();
-  setStatus(selectedImages.length ? `${selectedImages.length} image${selectedImages.length === 1 ? "" : "s"} ready.` : "");
+  try {
+    selectedImages = await prepareImages(imageInput.files || []);
+    renderImagePreview();
+    if (!selectedImages.length) {
+      setStatus("");
+      return;
+    }
+    const originalSize = selectedImages.reduce((total, image) => total + (image.original_size || 0), 0);
+    const compressedSize = selectedImages.reduce((total, image) => total + (image.compressed_size || 0), 0);
+    const savings = originalSize ? Math.round((1 - compressedSize / originalSize) * 100) : 0;
+    setStatus(
+      `${selectedImages.length} image${selectedImages.length === 1 ? "" : "s"} ready. Compressed ${Math.max(0, savings)}%.`,
+      "success",
+    );
+  } catch (error) {
+    selectedImages = [];
+    renderImagePreview();
+    setStatus(error.message, "error");
+  }
 });
 
 form.addEventListener("submit", async (event) => {
