@@ -725,6 +725,7 @@ h2 {
   gap: 12px;
   min-width: 0;
   padding: 22px;
+  background: var(--paper);
 }
 
 .wire-archive-copy h3 {
@@ -2043,14 +2044,19 @@ td small {
 
   .wire-archive-item {
     grid-template-columns: 1fr;
+    overflow: hidden;
   }
 
   .wire-archive-item > img {
+    height: auto;
     min-height: 0;
     aspect-ratio: 16 / 9;
+    grid-row: auto;
   }
 
   .wire-archive-copy {
+    position: relative;
+    z-index: 1;
     padding: 18px;
   }
 
