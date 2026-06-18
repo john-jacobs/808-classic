@@ -1,4 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
+const APP_VERSION = "20260618-cacheguard1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -10,6 +11,28 @@ const publishBtn = document.querySelector("#wirePublishBtn");
 
 let selectedImages = [];
 let currentDraft = null;
+
+async function ensureFreshAppVersion() {
+  try {
+    const response = await fetch(`./site-version.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    const latest = String(data.version || "").trim();
+    if (!latest || latest === APP_VERSION) return;
+
+    const reloadKey = `808-classic-reloaded-${latest}`;
+    if (sessionStorage.getItem(reloadKey)) return;
+    sessionStorage.setItem(reloadKey, "true");
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", latest);
+    window.location.replace(url.toString());
+  } catch (error) {
+    console.warn("Version check failed.", error);
+  }
+}
+
+ensureFreshAppVersion();
 
 function setStatus(message, tone = "") {
   statusEl.textContent = message;

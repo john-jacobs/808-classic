@@ -1,6 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
+const APP_VERSION = "20260618-cacheguard1";
 
 const fallbackTrip = {
   players: [
@@ -622,6 +623,26 @@ function copyAddressMarkup(address) {
       ${address}
     </span>
   `;
+}
+
+async function ensureFreshAppVersion() {
+  try {
+    const response = await fetch(`./site-version.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    const latest = String(data.version || "").trim();
+    if (!latest || latest === APP_VERSION) return;
+
+    const reloadKey = `808-classic-reloaded-${latest}`;
+    if (sessionStorage.getItem(reloadKey)) return;
+    sessionStorage.setItem(reloadKey, "true");
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", latest);
+    window.location.replace(url.toString());
+  } catch (error) {
+    console.warn("Version check failed.", error);
+  }
 }
 
 function updateCountdown() {
@@ -1255,6 +1276,8 @@ function renderAll() {
 }
 
 async function init() {
+  await ensureFreshAppVersion();
+
   if (isWireArchivePage) {
     const wireResult = await Promise.allSettled([loadWire()]);
     if (wireResult[0].status === "rejected") {
