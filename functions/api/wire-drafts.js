@@ -94,6 +94,15 @@ function extractOutputText(response) {
   return chunks.join("\n").trim();
 }
 
+function parseMaybeJson(text) {
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+}
+
 async function maybeFetchContext(env) {
   try {
     const [people, courses, posts] = await Promise.all([
@@ -195,8 +204,11 @@ async function generateWireDraft(env, input, member, contextData) {
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
-  if (!response.ok) throw Object.assign(new Error(data.error?.message || "OpenAI draft generation failed"), { status: 502 });
+  const data = parseMaybeJson(text);
+  if (!response.ok) {
+    const message = data.error?.message || data.raw?.slice(0, 240) || "OpenAI draft generation failed";
+    throw Object.assign(new Error(message), { status: 502 });
+  }
 
   const outputText = extractOutputText(data);
   if (!outputText) throw Object.assign(new Error("OpenAI returned an empty draft"), { status: 502 });
