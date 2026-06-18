@@ -1,0 +1,20 @@
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/wire.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/wire-create.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/app.js
+  Cache-Control: no-cache, must-revalidate
+
+/styles.css
+  Cache-Control: no-cache, must-revalidate
+
+/wire-create.js
+  Cache-Control: no-cache, must-revalidate
