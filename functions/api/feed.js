@@ -7,26 +7,48 @@ function needsSignedUrl(path = "") {
   return path && !path.startsWith(".") && !path.startsWith("http") && !path.startsWith("data:");
 }
 
+async function displayImageUrl(env, path) {
+  if (!needsSignedUrl(path)) return path || "";
+  try {
+    return await createSignedStorageUrl(env, "trip-media", path);
+  } catch (error) {
+    console.warn("Avatar signing failed.", error);
+    return path;
+  }
+}
+
 async function signPostMedia(env, posts) {
   return Promise.all(
-    posts.map(async (post) => ({
-      ...post,
-      media: await Promise.all(
-        (post.media || []).map(async (item) => {
-          if (!needsSignedUrl(item.storage_path)) return item;
-          try {
-            return {
-              ...item,
-              original_storage_path: item.storage_path,
-              storage_path: await createSignedStorageUrl(env, "trip-media", item.storage_path),
-            };
-          } catch (error) {
-            console.warn("Media signing failed.", error);
-            return item;
-          }
-        }),
-      ),
-    })),
+    posts.map(async (post) => {
+      const authorAvatar = await displayImageUrl(env, post.author?.avatar_url);
+      return {
+        ...post,
+        author: post.author ? { ...post.author, avatar_url: authorAvatar } : post.author,
+        comments: await Promise.all(
+          (post.comments || []).map(async (comment) => ({
+            ...comment,
+            author: comment.author
+              ? { ...comment.author, avatar_url: await displayImageUrl(env, comment.author.avatar_url) }
+              : comment.author,
+          })),
+        ),
+        media: await Promise.all(
+          (post.media || []).map(async (item) => {
+            if (!needsSignedUrl(item.storage_path)) return item;
+            try {
+              return {
+                ...item,
+                original_storage_path: item.storage_path,
+                storage_path: await createSignedStorageUrl(env, "trip-media", item.storage_path),
+              };
+            } catch (error) {
+              console.warn("Media signing failed.", error);
+              return item;
+            }
+          }),
+        ),
+      };
+    }),
   );
 }
 

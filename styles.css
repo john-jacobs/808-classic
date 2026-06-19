@@ -1254,6 +1254,52 @@ h2 {
   padding-top: 54px;
 }
 
+.settings-head {
+  align-items: end;
+}
+
+.settings-head > div:first-child {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-photo-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-width: min(320px, 100%);
+  padding: 12px;
+  background: var(--navy);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.settings-photo-card img,
+.settings-photo-upload img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  background: var(--navy);
+  border: 3px solid #fff;
+}
+
+.settings-photo-card strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-weight: 900;
+}
+
+.settings-photo-card span,
+.settings-photo-upload span {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .settings-form {
   display: grid;
   gap: 20px;
@@ -1268,6 +1314,25 @@ h2 {
   background: var(--paper);
   border: 1px solid var(--line);
   box-shadow: 0 14px 36px rgba(16, 24, 32, 0.08);
+}
+
+.settings-photo-upload {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.settings-photo-upload span {
+  color: var(--muted);
+}
+
+.settings-photo-upload input {
+  margin-top: 4px;
+  padding: 10px;
 }
 
 .settings-grid {
@@ -2194,6 +2259,10 @@ td small {
     grid-template-columns: 1fr;
   }
 
+  .settings-photo-card {
+    width: 100%;
+  }
+
   .section-head.split {
     align-items: stretch;
     flex-direction: column;
@@ -2378,6 +2447,20 @@ td small {
   .settings-panel {
     gap: 14px;
     padding: 18px;
+  }
+
+  .settings-photo-upload {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .settings-photo-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .settings-photo-card img,
+  .settings-photo-upload img {
+    width: 64px;
+    height: 64px;
   }
 
   .settings-actions {

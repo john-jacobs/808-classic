@@ -1,6 +1,11 @@
 const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
-const APP_VERSION = "20260618-settings1";
+const photoInput = document.querySelector("#profilePhotoInput");
+const photoPreview = document.querySelector("#profilePhotoPreview");
+const photoThumb = document.querySelector("#profilePhotoThumb");
+const photoName = document.querySelector("#settingsPhotoName");
+const APP_VERSION = "20260618-settings2";
+let pendingPhotoDataUrl = "";
 
 async function ensureFreshAppVersion() {
   try {
@@ -53,6 +58,17 @@ function setValue(name, value) {
   field.value = value ?? "";
 }
 
+function profilePhoto(profile = {}, member = {}) {
+  return profile.headshot_url || member.avatar_url || "./assets/favicon.svg";
+}
+
+function setPhoto(src, name = "") {
+  const photoSrc = src || "./assets/favicon.svg";
+  photoPreview.src = photoSrc;
+  photoThumb.src = photoSrc;
+  photoName.textContent = name || "808 Member";
+}
+
 function fillForm(data) {
   const profile = data.profile || {};
   const trip = data.trip_profile || {};
@@ -70,6 +86,7 @@ function fillForm(data) {
   setValue("departure", trip.departure);
   setValue("classic_record", trip.classic_record);
   setValue("detail", trip.detail);
+  setPhoto(profilePhoto(profile, data.member), profile.display_name || data.member?.display_name);
 }
 
 function formPayload() {
@@ -89,6 +106,7 @@ function formPayload() {
     departure: data.get("departure"),
     classic_record: data.get("classic_record"),
     detail: data.get("detail"),
+    headshot_data_url: pendingPhotoDataUrl,
   };
 }
 
@@ -108,6 +126,8 @@ form.addEventListener("submit", async (event) => {
       method: "PATCH",
       body: JSON.stringify(formPayload()),
     });
+    pendingPhotoDataUrl = "";
+    photoInput.value = "";
     fillForm(data);
     setWorking(false);
     setStatus("Saved. The field will update on refresh.", "success");
@@ -115,6 +135,34 @@ form.addEventListener("submit", async (event) => {
     setWorking(false);
     setStatus(error.message, "error");
   }
+});
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files?.[0];
+  pendingPhotoDataUrl = "";
+  if (!file) return;
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    photoInput.value = "";
+    setStatus("Profile photo must be a JPG, PNG, or WebP image.", "error");
+    return;
+  }
+  if (file.size > 3_400_000) {
+    photoInput.value = "";
+    setStatus("Profile photo must be under 3.4 MB.", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    pendingPhotoDataUrl = String(reader.result || "");
+    setPhoto(pendingPhotoDataUrl, form.elements.namedItem("display_name")?.value || photoName.textContent);
+    setStatus("Profile photo ready. Save settings to publish it.", "");
+  });
+  reader.addEventListener("error", () => {
+    photoInput.value = "";
+    setStatus("Could not read that image.", "error");
+  });
+  reader.readAsDataURL(file);
 });
 
 ensureFreshAppVersion().then(() => {

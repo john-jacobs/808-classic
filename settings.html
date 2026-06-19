@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260618-settings1" />
+    <link rel="stylesheet" href="./styles.css?v=20260618-settings2" />
   </head>
   <body class="settings-body">
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -39,14 +39,31 @@
 
     <main>
       <section class="section settings-section">
-        <div class="section-head split">
-          <h2>Settings</h2>
-          <a class="section-link" href="./index.html#attendees">Back to Field</a>
+        <div class="section-head split settings-head">
+          <div>
+            <h2>Settings</h2>
+            <a class="section-link" href="./index.html#attendees">Back to Field</a>
+          </div>
+          <div class="settings-photo-card" aria-label="Current profile photo">
+            <img id="profilePhotoPreview" src="./assets/favicon.svg" alt="" />
+            <div>
+              <strong id="settingsPhotoName">808 Member</strong>
+              <span>Profile photo</span>
+            </div>
+          </div>
         </div>
 
         <form id="settingsForm" class="settings-form">
           <div class="settings-panel">
             <p class="wire-label">Profile</p>
+            <div class="settings-photo-upload">
+              <img id="profilePhotoThumb" src="./assets/favicon.svg" alt="" />
+              <label>
+                Profile picture
+                <input id="profilePhotoInput" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" />
+                <span>JPG, PNG, or WebP. This updates your field headshot and Wire avatar.</span>
+              </label>
+            </div>
             <div class="settings-grid">
               <label>
                 Name
@@ -127,6 +144,6 @@
       </section>
     </main>
 
-    <script src="./settings.js?v=20260618-settings1"></script>
+    <script src="./settings.js?v=20260618-settings2"></script>
   </body>
 </html>

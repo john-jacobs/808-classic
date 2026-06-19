@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260618-settings1";
+const APP_VERSION = "20260618-settings2";
 
 const fallbackTrip = {
   players: [

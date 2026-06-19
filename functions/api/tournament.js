@@ -1,7 +1,7 @@
 import { withApiErrors } from "../_lib/handler.js";
 import { json } from "../_lib/http.js";
 import { requireMember } from "../_lib/member.js";
-import { supabaseRequest } from "../_lib/supabase.js";
+import { createSignedStorageUrl, supabaseRequest } from "../_lib/supabase.js";
 
 const personSelect = [
   "slug",
@@ -23,6 +23,20 @@ const personSelect = [
   "active",
 ].join(",");
 
+function needsSignedUrl(path = "") {
+  return path && !path.startsWith(".") && !path.startsWith("http") && !path.startsWith("data:");
+}
+
+async function displayImageUrl(env, path) {
+  if (!needsSignedUrl(path)) return path || "";
+  try {
+    return await createSignedStorageUrl(env, "trip-media", path);
+  } catch (error) {
+    console.warn("Tournament image signing failed.", error);
+    return path;
+  }
+}
+
 export const onRequestGet = withApiErrors(async (context) => {
   await requireMember(context);
 
@@ -38,25 +52,27 @@ export const onRequestGet = withApiErrors(async (context) => {
   ]);
 
   const trip = tripRows?.[0] || {};
-  const people = peopleRows.map((person) => ({
-    id: person.slug,
-    name: person.display_name,
-    title: person.title,
-    city: person.city,
-    height: person.height,
-    handicap: person.handicap,
-    odds: person.odds,
-    classic_record: person.classic_record,
-    blurb: person.bio,
-    quote: person.quote,
-    strength: person.strength,
-    weakness: person.weakness,
-    headshot: person.headshot_url,
-    action_photo: person.action_photo_url,
-    person_type: person.person_type,
-    sort_order: person.sort_order,
-    active: person.active,
-  }));
+  const people = await Promise.all(
+    peopleRows.map(async (person) => ({
+      id: person.slug,
+      name: person.display_name,
+      title: person.title,
+      city: person.city,
+      height: person.height,
+      handicap: person.handicap,
+      odds: person.odds,
+      classic_record: person.classic_record,
+      blurb: person.bio,
+      quote: person.quote,
+      strength: person.strength,
+      weakness: person.weakness,
+      headshot: await displayImageUrl(context.env, person.headshot_url),
+      action_photo: await displayImageUrl(context.env, person.action_photo_url),
+      person_type: person.person_type,
+      sort_order: person.sort_order,
+      active: person.active,
+    })),
+  );
 
   const classicAttendance = participantRows
     .filter((participant) => participant.participant_type !== "guest")

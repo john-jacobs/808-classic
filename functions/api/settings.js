@@ -1,9 +1,10 @@
 import { withApiErrors } from "../_lib/handler.js";
 import { apiError, json, readJson } from "../_lib/http.js";
 import { requireMember } from "../_lib/member.js";
-import { supabaseRequest } from "../_lib/supabase.js";
+import { createSignedStorageUrl, supabaseRequest, uploadStorageObject } from "../_lib/supabase.js";
 
 const ATTENDANCE_STATUSES = new Set(["confirmed", "tentative", "not_attending"]);
+const MAX_PROFILE_PHOTO_CHARS = 4_500_000;
 
 function cleanString(value, max = 1000) {
   return String(value || "").trim().slice(0, max);
@@ -13,6 +14,37 @@ function cleanNumber(value) {
   if (value === "" || value === null || value === undefined) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function parseDataUrl(dataUrl) {
+  const value = String(dataUrl || "").trim();
+  if (value.length > MAX_PROFILE_PHOTO_CHARS) throw Object.assign(new Error("Profile photo is too large"), { status: 400 });
+  const match = value.match(/^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i);
+  if (!match) return null;
+  return {
+    mimeType: match[1].toLowerCase(),
+    bytes: Uint8Array.from(atob(match[2]), (char) => char.charCodeAt(0)),
+  };
+}
+
+function fileExtension(mimeType) {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  return "jpg";
+}
+
+function needsSignedUrl(path = "") {
+  return path && !path.startsWith(".") && !path.startsWith("http") && !path.startsWith("data:");
+}
+
+async function displayImageUrl(env, path) {
+  if (!needsSignedUrl(path)) return path || "";
+  try {
+    return await createSignedStorageUrl(env, "trip-media", path);
+  } catch (error) {
+    console.warn("Profile image signing failed.", error);
+    return path;
+  }
 }
 
 function slugFromMember(member) {
@@ -94,14 +126,18 @@ async function ensureParticipant(env, personId) {
   return (await findParticipant(env, personId)) || (await createParticipant(env, personId));
 }
 
-function serializeSettings(member, person, participant) {
+async function serializeSettings(env, member, person, participant) {
+  const headshotUrl = await displayImageUrl(env, person.headshot_url);
+  const actionPhotoUrl = await displayImageUrl(env, person.action_photo_url);
+  const avatarUrl = await displayImageUrl(env, member.avatar_url);
+
   return {
     member: {
       id: member.id,
       email: member.email,
       role: member.role,
       display_name: member.display_name,
-      avatar_url: member.avatar_url,
+      avatar_url: avatarUrl,
     },
     profile: {
       display_name: person.display_name,
@@ -112,8 +148,8 @@ function serializeSettings(member, person, participant) {
       quote: person.quote,
       strength: person.strength,
       weakness: person.weakness,
-      headshot_url: person.headshot_url,
-      action_photo_url: person.action_photo_url,
+      headshot_url: headshotUrl,
+      action_photo_url: actionPhotoUrl,
     },
     trip_profile: {
       attendance_status: participant.attendance_status,
@@ -131,7 +167,7 @@ export const onRequestGet = withApiErrors(async (context) => {
   const member = await requireMember(context);
   const person = await ensurePerson(context.env, member);
   const participant = await ensureParticipant(context.env, person.id);
-  return json(serializeSettings(member, person, participant));
+  return json(await serializeSettings(context.env, member, person, participant));
 });
 
 export const onRequestPatch = withApiErrors(async (context) => {
@@ -145,11 +181,25 @@ export const onRequestPatch = withApiErrors(async (context) => {
 
   if (cleanString(input.bio, 2000).length > 1800) return apiError(400, "Bio is too long");
 
+  let headshotUrl = person.headshot_url;
+  let avatarUrl = member.avatar_url || person.headshot_url;
+  const photo = parseDataUrl(input.headshot_data_url);
+  if (photo) {
+    const extension = fileExtension(photo.mimeType);
+    headshotUrl = `${context.env.SUPABASE_GROUP_ID}/${context.env.SUPABASE_TRIP_ID}/profiles/${person.id}/headshot-${crypto.randomUUID()}.${extension}`;
+    avatarUrl = headshotUrl;
+    await uploadStorageObject(context.env, "trip-media", headshotUrl, photo.bytes, photo.mimeType);
+  } else if (input.headshot_data_url) {
+    return apiError(400, "Profile photo must be a JPG, PNG, or WebP image");
+  }
+  const persistedHeadshotUrl = headshotUrl || avatarUrl;
+
   await supabaseRequest(context.env, `/rest/v1/members?id=eq.${member.id}`, {
     method: "PATCH",
     headers: { prefer: "return=minimal" },
     body: {
       display_name: displayName,
+      avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     },
   });
@@ -166,6 +216,7 @@ export const onRequestPatch = withApiErrors(async (context) => {
       quote: cleanString(input.quote, 400),
       strength: cleanString(input.strength, 120),
       weakness: cleanString(input.weakness, 120),
+      headshot_url: persistedHeadshotUrl,
       updated_at: new Date().toISOString(),
     },
   });
@@ -190,5 +241,5 @@ export const onRequestPatch = withApiErrors(async (context) => {
     },
   );
 
-  return json(serializeSettings({ ...member, display_name: displayName }, people[0], participants[0]));
+  return json(await serializeSettings(context.env, { ...member, display_name: displayName, avatar_url: avatarUrl }, people[0], participants[0]));
 });
