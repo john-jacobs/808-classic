@@ -4,7 +4,7 @@ const photoInput = document.querySelector("#profilePhotoInput");
 const photoPreview = document.querySelector("#profilePhotoPreview");
 const photoThumb = document.querySelector("#profilePhotoThumb");
 const photoName = document.querySelector("#settingsPhotoName");
-const APP_VERSION = "20260620-wire-upload-errors1";
+const APP_VERSION = "20260620-heic-upload1";
 let pendingPhotoDataUrl = "";
 
 async function ensureFreshAppVersion() {

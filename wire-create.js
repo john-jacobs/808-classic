@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260620-wire-upload-errors1";
+const APP_VERSION = "20260620-heic-upload1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -79,11 +79,36 @@ function imageUploadHelp(file, reason) {
   return `${name} could not be added. ${reason} File type: ${type}; size: ${size}. Try taking a screenshot of the image, exporting it as JPG/PNG, or choosing fewer/smaller photos.`;
 }
 
-function validateImageFile(file) {
+function isHeicFile(file) {
   const extension = String(file.name || "").split(".").pop()?.toLowerCase();
-  if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
-    throw new Error(imageUploadHelp(file, "iPhone HEIC/Live Photo files are not supported by this browser upload path."));
+  return ["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type);
+}
+
+async function convertHeicToJpeg(file) {
+  if (typeof window.heic2any !== "function") {
+    throw new Error(imageUploadHelp(file, "HEIC conversion is not available yet. Refresh the page and try again."));
   }
+
+  try {
+    setStatus(`Converting HEIC to JPEG: ${file.name}`, "working");
+    const converted = await window.heic2any({
+      blob: file,
+      toType: "image/jpeg",
+      quality: IMAGE_QUALITY,
+    });
+    const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+    if (!jpegBlob) throw new Error("Converter returned no image data.");
+    const name = String(file.name || "image.heic").replace(/\.(heic|heif)$/i, ".jpg");
+    return new File([jpegBlob], name, {
+      type: "image/jpeg",
+      lastModified: file.lastModified || Date.now(),
+    });
+  } catch (error) {
+    throw new Error(imageUploadHelp(file, `HEIC conversion failed: ${error.message || "unknown converter error"}`));
+  }
+}
+
+function validateImageFile(file) {
   if (file.type && !SUPPORTED_IMAGE_TYPES.has(file.type)) {
     throw new Error(imageUploadHelp(file, "Only JPG, PNG, and WebP images are supported right now."));
   }
@@ -124,9 +149,10 @@ function canvasToBlob(canvas, type, quality) {
 }
 
 async function prepareImage(file) {
-  validateImageFile(file);
+  const sourceFile = isHeicFile(file) ? await convertHeicToJpeg(file) : file;
+  validateImageFile(sourceFile);
   try {
-    const image = await loadImage(file);
+    const image = await loadImage(sourceFile);
     const naturalWidth = image.naturalWidth || image.width;
     const naturalHeight = image.naturalHeight || image.height;
     if (!naturalWidth || !naturalHeight) {
@@ -140,7 +166,7 @@ async function prepareImage(file) {
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d");
-    if (!context) throw new Error(imageUploadHelp(file, "The browser could not create the image compressor."));
+    if (!context) throw new Error(imageUploadHelp(sourceFile, "The browser could not create the image compressor."));
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
@@ -154,6 +180,7 @@ async function prepareImage(file) {
       original_size: file.size,
       compressed_size: blob.size,
       data_url: await blobToDataUrl(blob),
+      converted_from: isHeicFile(file) ? "heic" : "",
     };
   } catch (error) {
     if (String(error.message || "").includes(file.name)) throw error;
