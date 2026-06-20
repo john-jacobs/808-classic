@@ -181,9 +181,9 @@ async function generateWireDraft(env, input, member, contextData) {
           available_kinds:
             "Choose metadata.kind from: match_report, match_preview, practice_report, scouting_report, score_update, rumor_mill, photo_drop, photo_essay, logistics, official_notice, daily_recap, dispatch. Use match_report only for a completed match/round with a result. Use match_preview for an upcoming matchup or pre-round setup.",
           voice:
-            "Overly official golf-trip journalism. Funny, dry, specific, and lightly grandiose. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
+            "Write like an actual sports dispatch for a private golf trip: game story, beat report, notebook, preview, recap, or column. Funny, dry, specific, and observant, but grounded in competitive stakes, form, matchups, pressure, swings, scoring, course conditions, quotes, and character. Avoid committee, bureaucracy, municipal, corporate, governance, department, jurisdiction, delegation, operations, or officialdom language unless the submitted notes explicitly ask for that joke. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
           output_rules:
-            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over.",
+            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over. Do not imitate bureaucratic wording from prior posts or site copy; use prior posts for facts and continuity only.",
         },
         null,
         2,
@@ -208,7 +208,7 @@ async function generateWireDraft(env, input, member, contextData) {
         {
           role: "system",
           content:
-            "You are the editor of The 808 Wire, a private golf-trip publication for the 808 Classic. You transform messy group-chat facts, scorecards, and photos into polished but absurdly serious tournament journalism.",
+            "You are the editor of The 808 Wire, a private golf-trip sports publication for the 808 Classic. You transform messy group-chat facts, scorecards, and photos into sharp sportswriting: reported, funny, concrete, and specific. The joke is that a friend golf trip is being covered like a real beat, not that it has a fake committee or municipal government.",
         },
         {
           role: "user",
