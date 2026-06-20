@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260618-settings2";
+const APP_VERSION = "20260620-wire-upload-errors1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -61,12 +61,42 @@ function escapeHtml(value) {
 
 const MAX_IMAGE_DIMENSION = 1800;
 const IMAGE_QUALITY = 0.78;
+const MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function formatBytes(bytes = 0) {
+  if (!bytes) return "0 KB";
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+}
+
+function imageUploadHelp(file, reason) {
+  const name = file?.name || "Selected image";
+  const type = file?.type || "unknown file type";
+  const size = formatBytes(file?.size || 0);
+  return `${name} could not be added. ${reason} File type: ${type}; size: ${size}. Try taking a screenshot of the image, exporting it as JPG/PNG, or choosing fewer/smaller photos.`;
+}
+
+function validateImageFile(file) {
+  const extension = String(file.name || "").split(".").pop()?.toLowerCase();
+  if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
+    throw new Error(imageUploadHelp(file, "iPhone HEIC/Live Photo files are not supported by this browser upload path."));
+  }
+  if (file.type && !SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error(imageUploadHelp(file, "Only JPG, PNG, and WebP images are supported right now."));
+  }
+  if (file.size > MAX_SOURCE_IMAGE_SIZE) {
+    throw new Error(imageUploadHelp(file, `This photo is too large to process on mobile. The current source limit is ${formatBytes(MAX_SOURCE_IMAGE_SIZE)}.`));
+  }
+}
 
 function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("Image could not be read"));
+    reader.onerror = () => reject(reader.error || new Error("The compressed image could not be read back from the browser."));
     reader.readAsDataURL(blob);
   });
 }
@@ -81,7 +111,7 @@ function loadImage(file) {
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error(`${file.name} could not be loaded as an image.`));
+      reject(new Error(imageUploadHelp(file, "The browser could not decode it as an image.")));
     };
     image.src = url;
   });
@@ -89,37 +119,56 @@ function loadImage(file) {
 
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image could not be compressed."))), type, quality);
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("The browser could not compress this image."))), type, quality);
   });
 }
 
 async function prepareImage(file) {
-  const image = await loadImage(file);
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
+  validateImageFile(file);
+  try {
+    const image = await loadImage(file);
+    const naturalWidth = image.naturalWidth || image.width;
+    const naturalHeight = image.naturalHeight || image.height;
+    if (!naturalWidth || !naturalHeight) {
+      throw new Error(imageUploadHelp(file, "The browser loaded the file but could not read its dimensions."));
+    }
 
-  const blob = await canvasToBlob(canvas, "image/jpeg", IMAGE_QUALITY);
-  return {
-    name: file.name,
-    type: "image/jpeg",
-    width,
-    height,
-    original_size: file.size,
-    compressed_size: blob.size,
-    data_url: await blobToDataUrl(blob),
-  };
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(naturalWidth, naturalHeight));
+    const width = Math.max(1, Math.round(naturalWidth * scale));
+    const height = Math.max(1, Math.round(naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error(imageUploadHelp(file, "The browser could not create the image compressor."));
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await canvasToBlob(canvas, "image/jpeg", IMAGE_QUALITY);
+    return {
+      name: file.name,
+      type: "image/jpeg",
+      width,
+      height,
+      original_size: file.size,
+      compressed_size: blob.size,
+      data_url: await blobToDataUrl(blob),
+    };
+  } catch (error) {
+    if (String(error.message || "").includes(file.name)) throw error;
+    throw new Error(imageUploadHelp(file, error.message || "The browser reported a generic image load error."));
+  }
 }
 
 async function prepareImages(files) {
-  return Promise.all([...files].slice(0, 6).map(prepareImage));
+  const limitedFiles = [...files].slice(0, 6);
+  const prepared = [];
+  for (let index = 0; index < limitedFiles.length; index += 1) {
+    setStatus(`Preparing image ${index + 1} of ${limitedFiles.length}: ${limitedFiles[index].name}`, "working");
+    prepared.push(await prepareImage(limitedFiles[index]));
+  }
+  return prepared;
 }
 
 function renderImagePreview() {
