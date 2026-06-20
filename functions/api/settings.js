@@ -16,6 +16,20 @@ function cleanNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+function preserveString(input, key, currentValue, max = 1000) {
+  if (!Object.prototype.hasOwnProperty.call(input, key)) return currentValue;
+  const nextValue = cleanString(input[key], max);
+  if (!nextValue && cleanString(currentValue)) return currentValue;
+  return nextValue;
+}
+
+function preserveNumber(input, key, currentValue) {
+  if (!Object.prototype.hasOwnProperty.call(input, key)) return currentValue;
+  const nextValue = cleanNumber(input[key]);
+  if (nextValue === null && currentValue !== null && currentValue !== undefined) return currentValue;
+  return nextValue;
+}
+
 function parseDataUrl(dataUrl) {
   const value = String(dataUrl || "").trim();
   if (value.length > MAX_PROFILE_PHOTO_CHARS) throw Object.assign(new Error("Profile photo is too large"), { status: 400 });
@@ -209,13 +223,13 @@ export const onRequestPatch = withApiErrors(async (context) => {
     headers: { prefer: "return=representation" },
     body: {
       display_name: displayName,
-      title: cleanString(input.title, 120),
-      city: cleanString(input.city, 120),
-      height: cleanString(input.height, 40),
-      bio: cleanString(input.bio, 1800),
-      quote: cleanString(input.quote, 400),
-      strength: cleanString(input.strength, 120),
-      weakness: cleanString(input.weakness, 120),
+      title: preserveString(input, "title", person.title, 120),
+      city: preserveString(input, "city", person.city, 120),
+      height: preserveString(input, "height", person.height, 40),
+      bio: preserveString(input, "bio", person.bio, 1800),
+      quote: preserveString(input, "quote", person.quote, 400),
+      strength: preserveString(input, "strength", person.strength, 120),
+      weakness: preserveString(input, "weakness", person.weakness, 120),
       headshot_url: persistedHeadshotUrl,
       updated_at: new Date().toISOString(),
     },
@@ -230,11 +244,11 @@ export const onRequestPatch = withApiErrors(async (context) => {
       body: {
         attendance_status: attendanceStatus,
         participant_type: "player",
-        arrival: cleanString(input.arrival, 240),
-        departure: cleanString(input.departure, 240),
-        handicap: cleanNumber(input.handicap),
-        classic_record: cleanString(input.classic_record, 120),
-        detail: cleanString(input.detail, 800),
+        arrival: preserveString(input, "arrival", participant.arrival, 240),
+        departure: preserveString(input, "departure", participant.departure, 240),
+        handicap: preserveNumber(input, "handicap", participant.handicap),
+        classic_record: preserveString(input, "classic_record", participant.classic_record, 120),
+        detail: preserveString(input, "detail", participant.detail, 800),
         active,
         updated_at: new Date().toISOString(),
       },

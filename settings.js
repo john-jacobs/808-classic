@@ -4,8 +4,9 @@ const photoInput = document.querySelector("#profilePhotoInput");
 const photoPreview = document.querySelector("#profilePhotoPreview");
 const photoThumb = document.querySelector("#profilePhotoThumb");
 const photoName = document.querySelector("#settingsPhotoName");
-const APP_VERSION = "20260620-heic-upload1";
+const APP_VERSION = "20260620-settings-preserve1";
 let pendingPhotoDataUrl = "";
+let settingsLoaded = false;
 
 async function ensureFreshAppVersion() {
   try {
@@ -111,15 +112,21 @@ function formPayload() {
 }
 
 async function loadSettings() {
+  settingsLoaded = false;
   setWorking(true, "Loading settings...");
   const data = await requestJson("/api/settings");
   fillForm(data);
+  settingsLoaded = true;
   setWorking(false);
   setStatus("Settings loaded.", "success");
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!settingsLoaded) {
+    setStatus("Settings did not finish loading, so nothing was saved. Refresh this page and try again.", "error");
+    return;
+  }
   setWorking(true, "Saving settings...");
   try {
     const data = await requestJson("/api/settings", {
@@ -168,6 +175,7 @@ photoInput.addEventListener("change", () => {
 ensureFreshAppVersion().then(() => {
   loadSettings().catch((error) => {
     setWorking(false);
-    setStatus(error.message, "error");
+    settingsLoaded = false;
+    setStatus(`${error.message}. Nothing can be saved until settings load successfully.`, "error");
   });
 });
