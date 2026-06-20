@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260620-settings-preserve1";
+const APP_VERSION = "20260620-header-profile1";
 
 const fallbackTrip = {
   players: [
@@ -614,6 +614,7 @@ async function loadSession() {
   if (!response.ok) throw new Error(`Session request failed: ${response.status}`);
   const data = await response.json();
   currentMember = data.member || null;
+  renderAccountLink(currentMember);
 }
 
 async function postJson(url, options = {}) {
@@ -635,6 +636,18 @@ function initials(name) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function renderAccountLink(member = null) {
+  const name = member?.display_name || "Profile";
+  const photo = member?.avatar_url || "./assets/favicon.svg";
+  document.querySelectorAll(".account-link").forEach((link) => {
+    const image = link.querySelector("img");
+    const label = link.querySelector("span");
+    if (image) image.src = photo;
+    if (label) label.textContent = name;
+    link.setAttribute("aria-label", `Edit profile${member?.display_name ? ` for ${member.display_name}` : ""}`);
+  });
 }
 
 function copyAddressMarkup(address) {

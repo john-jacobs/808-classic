@@ -1,10 +1,8 @@
 const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
 const photoInput = document.querySelector("#profilePhotoInput");
-const photoPreview = document.querySelector("#profilePhotoPreview");
 const photoThumb = document.querySelector("#profilePhotoThumb");
-const photoName = document.querySelector("#settingsPhotoName");
-const APP_VERSION = "20260620-settings-preserve1";
+const APP_VERSION = "20260620-header-profile1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
 
@@ -65,9 +63,14 @@ function profilePhoto(profile = {}, member = {}) {
 
 function setPhoto(src, name = "") {
   const photoSrc = src || "./assets/favicon.svg";
-  photoPreview.src = photoSrc;
   photoThumb.src = photoSrc;
-  photoName.textContent = name || "808 Member";
+  document.querySelectorAll(".account-link").forEach((link) => {
+    const image = link.querySelector("img");
+    const label = link.querySelector("span");
+    if (image) image.src = photoSrc;
+    if (label) label.textContent = name || "Profile";
+    link.setAttribute("aria-label", `Edit profile${name ? ` for ${name}` : ""}`);
+  });
 }
 
 function fillForm(data) {
@@ -162,7 +165,7 @@ photoInput.addEventListener("change", () => {
   const reader = new FileReader();
   reader.addEventListener("load", () => {
     pendingPhotoDataUrl = String(reader.result || "");
-    setPhoto(pendingPhotoDataUrl, form.elements.namedItem("display_name")?.value || photoName.textContent);
+    setPhoto(pendingPhotoDataUrl, form.elements.namedItem("display_name")?.value || "Profile");
     setStatus("Profile photo ready. Save settings to publish it.", "");
   });
   reader.addEventListener("error", () => {

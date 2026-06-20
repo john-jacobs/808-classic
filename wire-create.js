@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260620-settings-preserve1";
+const APP_VERSION = "20260620-header-profile1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -40,6 +40,31 @@ function setStatus(message, tone = "") {
   statusEl.textContent = message;
   statusEl.dataset.tone = tone;
 }
+
+function renderAccountLink(member = null) {
+  const name = member?.display_name || "Profile";
+  const photo = member?.avatar_url || "./assets/favicon.svg";
+  document.querySelectorAll(".account-link").forEach((link) => {
+    const image = link.querySelector("img");
+    const label = link.querySelector("span");
+    if (image) image.src = photo;
+    if (label) label.textContent = name;
+    link.setAttribute("aria-label", `Edit profile${member?.display_name ? ` for ${member.display_name}` : ""}`);
+  });
+}
+
+async function loadHeaderAccount() {
+  try {
+    const response = await fetch("/api/session", { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    renderAccountLink(data.member || null);
+  } catch (error) {
+    console.warn("Header account could not be loaded.", error);
+  }
+}
+
+loadHeaderAccount();
 
 function setWorking(isWorking, message = "") {
   form.dataset.working = isWorking ? "true" : "false";

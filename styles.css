@@ -107,6 +107,43 @@ main {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.account-link {
+  display: grid;
+  grid-template-columns: 34px minmax(0, auto);
+  gap: 8px;
+  align-items: center;
+  max-width: 190px;
+  min-height: 40px;
+  padding: 3px 8px 3px 3px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.account-link:hover,
+.account-link:focus-visible,
+.account-link.active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.account-link img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  background: var(--orange);
+  border: 2px solid rgba(255, 255, 255, 0.78);
+}
+
+.account-link span {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .hero {
   position: relative;
   min-height: min(76vh, 760px);
@@ -2133,6 +2170,10 @@ td small {
     justify-content: flex-start;
   }
 
+  .account-link {
+    margin-left: auto;
+  }
+
   .ticker,
   .course-panel,
   .event-day {
@@ -2305,6 +2346,23 @@ td small {
     flex-wrap: nowrap;
     gap: 4px;
     overflow-x: hidden;
+  }
+
+  .account-link {
+    position: absolute;
+    top: 17px;
+    right: 18px;
+    grid-template-columns: 34px;
+    padding: 3px;
+  }
+
+  .account-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .hero {
