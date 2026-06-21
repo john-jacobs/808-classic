@@ -144,6 +144,30 @@ main {
   white-space: nowrap;
 }
 
+.admin-link {
+  display: none;
+  min-height: 40px;
+  align-items: center;
+  padding: 0 12px;
+  color: #fff;
+  background: rgba(255, 95, 5, 0.2);
+  border: 1px solid rgba(255, 95, 5, 0.45);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-link.visible,
+.admin-link.active {
+  display: inline-flex;
+}
+
+.admin-link:hover,
+.admin-link:focus-visible,
+.admin-link.active {
+  background: var(--orange);
+}
+
 .hero {
   position: relative;
   min-height: min(76vh, 760px);
@@ -1287,8 +1311,173 @@ h2 {
   background: #fff;
 }
 
+.admin-body main {
+  min-height: calc(100vh - 74px);
+  background: #fff;
+}
+
 .settings-section {
   padding-top: 54px;
+}
+
+.admin-section {
+  padding-top: 54px;
+}
+
+.admin-form {
+  display: grid;
+  gap: 22px;
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+}
+
+.admin-toolbar,
+.admin-panel,
+.admin-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 36px rgba(16, 24, 32, 0.08);
+}
+
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+}
+
+.admin-toolbar strong {
+  display: block;
+  color: var(--navy);
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: 1.4rem;
+}
+
+.admin-toolbar button,
+.admin-panel-head button {
+  min-height: 40px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--orange);
+  border: 0;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-toolbar button:disabled,
+.admin-panel-head button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.admin-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  margin: -10px 0 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.admin-status[data-tone="working"]::before {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 95, 5, 0.25);
+  border-top-color: var(--orange);
+  border-radius: 999px;
+  content: "";
+  animation: wire-spin 0.8s linear infinite;
+}
+
+.admin-status[data-tone="success"] {
+  color: var(--green);
+}
+
+.admin-status[data-tone="error"] {
+  color: #b42318;
+}
+
+.admin-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.admin-panel-head,
+.admin-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-panel h3 {
+  margin: 0;
+  color: var(--navy);
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+}
+
+.admin-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: #fff;
+}
+
+.admin-card-head strong {
+  color: var(--navy);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-card label,
+.admin-check {
+  display: grid;
+  gap: 7px;
+  color: var(--orange-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-check {
+  display: flex;
+  align-items: center;
+  color: var(--navy);
+}
+
+.admin-card input,
+.admin-card textarea {
+  width: 100%;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  font: 600 0.94rem/1.45 Inter, system-ui, sans-serif;
+  padding: 10px;
+  text-transform: none;
+}
+
+.admin-card input:focus,
+.admin-card textarea:focus {
+  border-color: var(--orange);
+  outline: 2px solid rgba(255, 95, 5, 0.2);
 }
 
 .settings-head {
@@ -2300,6 +2489,10 @@ td small {
     grid-template-columns: 1fr;
   }
 
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
   .settings-photo-card {
     width: 100%;
   }
@@ -2354,6 +2547,16 @@ td small {
     right: 18px;
     grid-template-columns: 34px;
     padding: 3px;
+  }
+
+  .admin-link.visible,
+  .admin-link.active {
+    position: absolute;
+    top: 17px;
+    right: 64px;
+    display: inline-flex;
+    min-height: 40px;
+    padding: 0 9px;
   }
 
   .account-link span {
@@ -2495,6 +2698,27 @@ td small {
 
   .settings-section {
     padding-top: 28px;
+  }
+
+  .admin-section {
+    padding-top: 28px;
+  }
+
+  .admin-form {
+    width: calc(100% - 32px);
+    gap: 14px;
+  }
+
+  .admin-toolbar,
+  .admin-panel,
+  .admin-card {
+    padding: 14px;
+  }
+
+  .admin-toolbar,
+  .admin-panel-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .settings-form {

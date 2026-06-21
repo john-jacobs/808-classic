@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260620-header-profile1";
+const APP_VERSION = "20260620-admin-content1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");
@@ -44,12 +44,16 @@ function setStatus(message, tone = "") {
 function renderAccountLink(member = null) {
   const name = member?.display_name || "Profile";
   const photo = member?.avatar_url || "./assets/favicon.svg";
+  const isAdmin = ["owner", "admin"].includes(member?.role);
   document.querySelectorAll(".account-link").forEach((link) => {
     const image = link.querySelector("img");
     const label = link.querySelector("span");
     if (image) image.src = photo;
     if (label) label.textContent = name;
     link.setAttribute("aria-label", `Edit profile${member?.display_name ? ` for ${member.display_name}` : ""}`);
+  });
+  document.querySelectorAll(".admin-link").forEach((link) => {
+    link.classList.toggle("visible", isAdmin);
   });
 }
 

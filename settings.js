@@ -2,7 +2,7 @@ const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
 const photoInput = document.querySelector("#profilePhotoInput");
 const photoThumb = document.querySelector("#profilePhotoThumb");
-const APP_VERSION = "20260620-header-profile1";
+const APP_VERSION = "20260620-admin-content1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
 
@@ -73,6 +73,13 @@ function setPhoto(src, name = "") {
   });
 }
 
+function renderAdminLink(member = {}) {
+  const isAdmin = ["owner", "admin"].includes(member.role);
+  document.querySelectorAll(".admin-link").forEach((link) => {
+    link.classList.toggle("visible", isAdmin);
+  });
+}
+
 function fillForm(data) {
   const profile = data.profile || {};
   const trip = data.trip_profile || {};
@@ -91,6 +98,7 @@ function fillForm(data) {
   setValue("classic_record", trip.classic_record);
   setValue("detail", trip.detail);
   setPhoto(profilePhoto(profile, data.member), profile.display_name || data.member?.display_name);
+  renderAdminLink(data.member);
 }
 
 function formPayload() {

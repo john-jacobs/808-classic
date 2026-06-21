@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <title>Admin | 808 Classic</title>
+    <meta name="description" content="Admin content editor for the 808 Classic." />
+    <meta name="theme-color" content="#ff5f05" />
+    <link rel="canonical" href="https://808classic.com/admin.html" />
+    <link rel="icon" href="./assets/favicon.ico" sizes="any" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css?v=20260620-admin-content1" />
+  </head>
+  <body class="admin-body">
+    <header class="topbar" aria-label="808 Classic primary navigation">
+      <a class="brand" href="./index.html#overview" aria-label="808 Classic home">
+        <span class="brand-mark">808</span>
+        <span>
+          <strong>808 Classic</strong>
+          <small>Official Tournament Operations</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="./index.html#wire">Wire</a>
+        <a href="./index.html#leaderboard-section">Leaderboard</a>
+        <a href="./index.html#events">Schedule</a>
+        <a href="./index.html#courses">Courses</a>
+        <a href="./index.html#attendees">Field</a>
+      </nav>
+      <a class="admin-link active" href="./admin.html">Admin</a>
+      <a class="account-link" href="./settings.html" aria-label="Edit profile">
+        <img src="./assets/favicon.svg" alt="" />
+        <span>Profile</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="section admin-section">
+        <div class="section-head split">
+          <h2>Admin</h2>
+          <a class="section-link" href="./index.html#events">Back to Site</a>
+        </div>
+
+        <form id="adminContentForm" class="admin-form">
+          <div class="admin-toolbar">
+            <div>
+              <p class="wire-label">Trip Content</p>
+              <strong>Courses and Schedule</strong>
+            </div>
+            <button type="submit">Save Changes</button>
+          </div>
+          <p id="adminStatus" class="admin-status" role="status"></p>
+
+          <section class="admin-panel" aria-label="Course editor">
+            <div class="admin-panel-head">
+              <h3>Courses</h3>
+              <button id="addCourseBtn" type="button">Add Course Day</button>
+            </div>
+            <div id="adminCourses" class="admin-list"></div>
+          </section>
+
+          <section class="admin-panel" aria-label="Schedule editor">
+            <div class="admin-panel-head">
+              <h3>Schedule</h3>
+              <button id="addEventBtn" type="button">Add Event</button>
+            </div>
+            <div id="adminEvents" class="admin-list"></div>
+          </section>
+        </form>
+      </section>
+    </main>
+
+    <script src="./admin.js?v=20260620-admin-content1"></script>
+  </body>
+</html>
