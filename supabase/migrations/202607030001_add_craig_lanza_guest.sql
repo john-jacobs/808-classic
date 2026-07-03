@@ -30,7 +30,7 @@ select
   'guest',
   'parallel_universe',
   'Parallel Universe Guest',
-  'Craig is married to Devon, who went to college with Julia, and is running a parallel Seattle golf weekend with his own crew. Their itinerary is unsettlingly familiar: Gold Mountain, Mariners, same weekend, but reversed with golf Friday and the game Saturday before they move on to Chambers Bay. It is the prestige-course alternate timeline, complete with wives, spa programming, and a level of domestic diplomacy the 808 Classic has not seriously attempted. There is almost no chance of an actual sighting, but somewhere nearby Craig is mogging our group by doing the same trip with better optics and a course that makes our schedule look like municipal research.',
+  'Craig is married to Devon, who went to college with Julia, and is running a parallel Seattle golf trip the same weekend. His crew is doing Gold Mountain and the Mariners too, just on opposite days, then adding Chambers Bay for good measure. They are also bringing wives and spa programming, which is suspiciously competent. We probably will not see him, but somewhere nearby Craig is mogging us from the prestige-course alternate timeline.',
   './assets/optimized/people/guests/craig-lanza-scotland-900.webp',
   null,
   104,
