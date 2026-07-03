@@ -26,14 +26,21 @@ function cleanMedia(input) {
   return (Array.isArray(input.media) ? input.media : [])
     .slice(0, MAX_MEDIA)
     .map((item, index) => ({
+      id: String(item.id || "").trim(),
+      storagePath: String(item.original_storage_path || item.storage_path || "").trim(),
       dataUrl: String(item.data_url || "").trim(),
       mimeType: String(item.type || "image/jpeg").trim().toLowerCase(),
       width: Number.isFinite(Number(item.width)) ? Number(item.width) : null,
       height: Number.isFinite(Number(item.height)) ? Number(item.height) : null,
       caption: String(item.caption || "").trim().slice(0, 240),
       sortOrder: Number.isFinite(Number(item.sort_order)) ? Number(item.sort_order) : index,
+      remove: item.remove === true,
     }))
-    .filter((item) => item.dataUrl.startsWith("data:image/") && item.dataUrl.length <= MAX_MEDIA_CHARS);
+    .filter((item) => {
+      if (item.remove) return item.id || item.storagePath;
+      if (item.dataUrl) return item.dataUrl.startsWith("data:image/") && item.dataUrl.length <= MAX_MEDIA_CHARS;
+      return item.id || item.storagePath;
+    });
 }
 
 function cleanPostInput(input) {
@@ -72,6 +79,90 @@ async function findEditablePost(context, member, postId) {
     throw Object.assign(new Error("Only the author or a group admin can manage this post"), { status: 403 });
   }
   return post;
+}
+
+function canonicalMediaPath(item = {}) {
+  return String(item.original_storage_path || item.storagePath || item.storage_path || "").trim();
+}
+
+async function reconcilePostMedia(context, post, media, metadata = {}) {
+  const existingRows = await supabaseRequest(
+    context.env,
+    `/rest/v1/post_media?post_id=eq.${encodeURIComponent(post.id)}&select=*&order=sort_order.asc`,
+  );
+  const existingById = new Map((existingRows || []).map((item) => [String(item.id), item]));
+  const keepIds = new Set();
+  const mediaCaptions = { ...(metadata.media_captions || {}) };
+
+  for (const item of media) {
+    if (item.remove) continue;
+
+    if (item.dataUrl) {
+      const parsed = parseDataUrl(item.dataUrl);
+      if (!parsed) continue;
+
+      const extension = fileExtension(parsed.mimeType || item.mimeType);
+      const storagePath = `${context.env.SUPABASE_GROUP_ID}/${context.env.SUPABASE_TRIP_ID}/posts/${post.id}/${String(item.sortOrder).padStart(2, "0")}-${crypto.randomUUID()}.${extension}`;
+      await uploadStorageObject(context.env, "trip-media", storagePath, parsed.bytes, parsed.mimeType);
+      const rows = await supabaseRequest(context.env, "/rest/v1/post_media?select=*", {
+        method: "POST",
+        headers: { prefer: "return=representation" },
+        body: [
+          {
+            post_id: post.id,
+            storage_path: storagePath,
+            mime_type: parsed.mimeType,
+            width: item.width,
+            height: item.height,
+            sort_order: item.sortOrder,
+          },
+        ],
+      });
+      const newRow = rows?.[0];
+      if (newRow?.id) keepIds.add(String(newRow.id));
+      if (item.caption) mediaCaptions[storagePath] = item.caption;
+      continue;
+    }
+
+    const existing = existingById.get(item.id) || existingRows.find((row) => row.storage_path === item.storagePath);
+    if (!existing) continue;
+    keepIds.add(String(existing.id));
+    await supabaseRequest(context.env, `/rest/v1/post_media?id=eq.${encodeURIComponent(existing.id)}`, {
+      method: "PATCH",
+      headers: { prefer: "return=minimal" },
+      body: {
+        sort_order: item.sortOrder,
+        width: item.width || existing.width,
+        height: item.height || existing.height,
+      },
+    });
+
+    const storagePath = canonicalMediaPath(item) || existing.storage_path;
+    if (storagePath) {
+      if (item.caption) mediaCaptions[storagePath] = item.caption;
+      else delete mediaCaptions[storagePath];
+    }
+  }
+
+  const idsToDelete = (existingRows || [])
+    .map((item) => String(item.id))
+    .filter((id) => !keepIds.has(id));
+
+  for (const id of idsToDelete) {
+    await supabaseRequest(context.env, `/rest/v1/post_media?id=eq.${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { prefer: "return=minimal" },
+    });
+  }
+
+  for (const row of existingRows || []) {
+    if (idsToDelete.includes(String(row.id))) delete mediaCaptions[row.storage_path];
+  }
+
+  return {
+    ...metadata,
+    media_captions: mediaCaptions,
+  };
 }
 
 export const onRequestPost = withApiErrors(async (context) => {
@@ -153,7 +244,9 @@ export const onRequestPatch = withApiErrors(async (context) => {
   const member = await requireMember(context);
   const postId = new URL(context.request.url).searchParams.get("id");
   const existing = await findEditablePost(context, member, postId);
-  const input = cleanPostInput(await readJson(context.request));
+  const rawInput = await readJson(context.request);
+  const input = cleanPostInput(rawInput);
+  const media = cleanMedia(rawInput);
   const merged = {
     ...input,
     metadata: Object.keys(input.metadata).length ? input.metadata : existing.metadata || {},
@@ -162,6 +255,8 @@ export const onRequestPatch = withApiErrors(async (context) => {
 
   const error = validatePostInput(merged, member);
   if (error) return apiError(error.startsWith("Only") ? 403 : 400, error);
+
+  const metadata = rawInput.media ? await reconcilePostMedia(context, existing, media, merged.metadata) : merged.metadata;
 
   const posts = await supabaseRequest(context.env, `/rest/v1/posts?id=eq.${encodeURIComponent(postId)}&select=*`, {
     method: "PATCH",
@@ -174,7 +269,7 @@ export const onRequestPatch = withApiErrors(async (context) => {
       byline: merged.byline || "808 Wire Staff",
       location: merged.location,
       published_at: merged.publishedAt,
-      metadata: merged.metadata,
+      metadata,
       updated_at: new Date().toISOString(),
     },
   });

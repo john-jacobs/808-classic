@@ -1,7 +1,12 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-article1";
+const APP_VERSION = "20260703-wire-media1";
+const WIRE_MAX_IMAGE_DIMENSION = 1800;
+const WIRE_IMAGE_QUALITY = 0.78;
+const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
+const WIRE_SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const pendingWireEditImages = new Map();
 
 const fallbackTrip = {
   players: [
@@ -608,6 +613,94 @@ function escapeHtml(value) {
   });
 }
 
+function formatBytes(bytes = 0) {
+  if (!bytes) return "0 KB";
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+}
+
+function wireImageUploadHelp(file, reason) {
+  const name = file?.name || "Selected image";
+  const type = file?.type || "unknown file type";
+  const size = formatBytes(file?.size || 0);
+  return `${name} could not be added. ${reason} File type: ${type}; size: ${size}.`;
+}
+
+function validateWireImageFile(file) {
+  if (file.type && !WIRE_SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error(wireImageUploadHelp(file, "Only JPG, PNG, and WebP images are supported in the editor."));
+  }
+  if (file.size > WIRE_MAX_SOURCE_IMAGE_SIZE) {
+    throw new Error(wireImageUploadHelp(file, `The current source limit is ${formatBytes(WIRE_MAX_SOURCE_IMAGE_SIZE)}.`));
+  }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("The compressed image could not be read back from the browser."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadWireImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(wireImageUploadHelp(file, "The browser could not decode it as an image.")));
+    };
+    image.src = url;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("The browser could not compress this image."))), type, quality);
+  });
+}
+
+async function prepareWireEditImage(file) {
+  validateWireImageFile(file);
+  const image = await loadWireImage(file);
+  const naturalWidth = image.naturalWidth || image.width;
+  const naturalHeight = image.naturalHeight || image.height;
+  if (!naturalWidth || !naturalHeight) {
+    throw new Error(wireImageUploadHelp(file, "The browser loaded the file but could not read its dimensions."));
+  }
+
+  const scale = Math.min(1, WIRE_MAX_IMAGE_DIMENSION / Math.max(naturalWidth, naturalHeight));
+  const width = Math.max(1, Math.round(naturalWidth * scale));
+  const height = Math.max(1, Math.round(naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error(wireImageUploadHelp(file, "The browser could not create the image compressor."));
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await canvasToBlob(canvas, "image/jpeg", WIRE_IMAGE_QUALITY);
+  return {
+    name: file.name,
+    type: "image/jpeg",
+    width,
+    height,
+    original_size: file.size,
+    compressed_size: blob.size,
+    data_url: await blobToDataUrl(blob),
+  };
+}
+
 async function loadCmsTrip() {
   const response = await fetch(CMS_ENDPOINT, { cache: "no-store" });
   if (!response.ok) throw new Error(`CMS request failed: ${response.status}`);
@@ -1058,6 +1151,8 @@ function datetimeLocalValue(value) {
 
 function renderWireEditForm(post) {
   const kind = post.metadata?.kind || post.type || "dispatch";
+  const media = sortedWireMedia(post);
+  const pendingImages = pendingWireEditImages.get(post.id) || [];
   const kindOptions = [
     ["dispatch", "Dispatch"],
     ["match_preview", "Match preview"],
@@ -1112,6 +1207,60 @@ function renderWireEditForm(post) {
         Body
         <textarea name="body" rows="14" maxlength="5000">${escapeHtml(post.body || "")}</textarea>
       </label>
+      <fieldset class="wire-edit-media">
+        <legend>Photos</legend>
+        ${
+          media.length
+            ? media
+                .map(
+                  (item, index) => `
+                    <div class="wire-edit-media-item" data-media-id="${escapeHtml(item.id || "")}" data-media-path="${escapeHtml(item.storage_path || "")}" data-media-original-path="${escapeHtml(item.original_storage_path || item.storage_path || "")}">
+                      <img src="${escapeHtml(item.storage_path)}" alt="" loading="lazy" decoding="async" />
+                      <div class="wire-edit-media-fields">
+                        <label>
+                          Caption
+                          <input name="caption_${escapeHtml(item.id || index)}" type="text" maxlength="240" value="${escapeHtml(wireMediaCaption(item, index, post))}" />
+                        </label>
+                        <div class="wire-edit-media-controls">
+                          <label class="inline">
+                            <input name="hero_media" type="radio" value="${escapeHtml(item.id || item.storage_path || index)}" ${index === 0 ? "checked" : ""} />
+                            Hero image
+                          </label>
+                          <label class="inline danger">
+                            <input name="remove_${escapeHtml(item.id || index)}" type="checkbox" />
+                            Remove
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  `,
+                )
+                .join("")
+            : `<p class="wire-edit-media-empty">No photos attached yet.</p>`
+        }
+        <label>
+          Add photos
+          <input name="new_media" type="file" accept="image/jpeg,image/png,image/webp" multiple data-wire-edit-images="${escapeHtml(post.id)}" />
+        </label>
+        <div class="wire-edit-new-media" data-wire-edit-new-media="${escapeHtml(post.id)}">
+          ${pendingImages
+            .map(
+              (image, index) => `
+                <figure>
+                  <img src="${image.data_url}" alt="" />
+                  <figcaption>
+                    <span>${escapeHtml(image.name)}</span>
+                    <label class="inline">
+                      <input name="hero_media" type="radio" value="new_${index}" />
+                      Hero image
+                    </label>
+                  </figcaption>
+                </figure>
+              `,
+            )
+            .join("")}
+        </div>
+      </fieldset>
       <div class="wire-edit-actions">
         <button type="submit">Save Changes</button>
         <button type="button" data-wire-cancel-edit="${escapeHtml(post.id)}">Cancel</button>
@@ -1137,6 +1286,7 @@ function openWirePostById(postId) {
 function openWireEdit(postId) {
   const post = wirePosts.find((item) => item.id === postId);
   if (!post) return;
+  pendingWireEditImages.delete(postId);
   wireDialogContent.innerHTML = renderWireEditForm(post);
   wireDialog.showModal();
 }
@@ -1152,6 +1302,46 @@ async function refreshWireAfterManage(postId = "") {
   if (postId) openWirePostById(postId);
 }
 
+function collectWireEditMedia(form, post) {
+  const mediaItems = [...form.querySelectorAll(".wire-edit-media-item")];
+  const heroValue = String(new FormData(form).get("hero_media") || "");
+  const existing = mediaItems.map((item, index) => {
+    const id = item.dataset.mediaId || "";
+    const storagePath = item.dataset.mediaPath || "";
+    const originalStoragePath = item.dataset.mediaOriginalPath || storagePath;
+    const caption = item.querySelector('input[type="text"]')?.value || "";
+    const remove = Boolean(item.querySelector('input[type="checkbox"]')?.checked);
+    const heroKey = id || storagePath || String(index);
+    const source = (post.media || []).find((media) => media.id === id || media.storage_path === storagePath) || {};
+    return {
+      id,
+      storage_path: storagePath,
+      original_storage_path: originalStoragePath,
+      width: source.width || null,
+      height: source.height || null,
+      caption,
+      remove,
+      isHero: heroValue === heroKey,
+    };
+  });
+  const newImages = (pendingWireEditImages.get(post.id) || []).map((image) => ({
+    data_url: image.data_url,
+    type: image.type,
+    width: image.width,
+    height: image.height,
+    caption: image.name || "",
+    remove: false,
+  }));
+  newImages.forEach((image, index) => {
+    image.isHero = heroValue === `new_${index}`;
+  });
+  const allMedia = [...existing, ...newImages];
+  return [...allMedia.filter((item) => item.isHero), ...allMedia.filter((item) => !item.isHero)].map((item, index) => ({
+    ...item,
+    sort_order: index,
+  }));
+}
+
 async function saveWireEdit(form) {
   const postId = form.dataset.wireEditForm;
   const post = wirePosts.find((item) => item.id === postId);
@@ -1163,7 +1353,7 @@ async function saveWireEdit(form) {
   const metadata = { ...(post.metadata || {}), kind: String(formData.get("kind") || post.metadata?.kind || "dispatch") };
 
   status.textContent = "Saving...";
-  form.querySelectorAll("button, input, textarea").forEach((control) => {
+  form.querySelectorAll("button, input, select, textarea").forEach((control) => {
     control.disabled = true;
   });
 
@@ -1179,13 +1369,15 @@ async function saveWireEdit(form) {
         published_at: publishedAt,
         body: formData.get("body"),
         metadata,
+        media: collectWireEditMedia(form, post),
       }),
     });
+    pendingWireEditImages.delete(postId);
     status.textContent = "Saved.";
     await refreshWireAfterManage(postId);
   } catch (error) {
     status.textContent = error.message;
-    form.querySelectorAll("button, input, textarea").forEach((control) => {
+    form.querySelectorAll("button, input, select, textarea").forEach((control) => {
       control.disabled = false;
     });
   }
@@ -1615,6 +1807,60 @@ document.body.addEventListener("keydown", (event) => {
   if (!button) return;
   event.preventDefault();
   openBio(Number(button.dataset.player));
+});
+
+document.body.addEventListener("change", async (event) => {
+  const input = event.target.closest("[data-wire-edit-images]");
+  if (!input) return;
+
+  const postId = input.dataset.wireEditImages;
+  const form = input.closest("[data-wire-edit-form]");
+  const status = form?.querySelector(".wire-edit-status");
+  const preview = form?.querySelector(`[data-wire-edit-new-media="${CSS.escape(postId)}"]`);
+  if (!postId || !form || !preview) return;
+
+  status.textContent = "Preparing photos...";
+  form.querySelectorAll("button").forEach((button) => {
+    button.disabled = true;
+  });
+
+  try {
+    const keptMediaCount = [...form.querySelectorAll(".wire-edit-media-item")].filter(
+      (item) => !item.querySelector('input[type="checkbox"]')?.checked,
+    ).length;
+    const files = [...(input.files || [])].slice(0, Math.max(0, 6 - keptMediaCount));
+    const prepared = [];
+    for (const file of files) {
+      prepared.push(await prepareWireEditImage(file));
+    }
+    pendingWireEditImages.set(postId, prepared);
+    preview.innerHTML = prepared
+      .map(
+        (image, index) => `
+          <figure>
+            <img src="${image.data_url}" alt="" />
+            <figcaption>
+              <span>${escapeHtml(image.name)}</span>
+              <label class="inline">
+                <input name="hero_media" type="radio" value="new_${index}" />
+                Hero image
+              </label>
+            </figcaption>
+          </figure>
+        `,
+      )
+      .join("");
+    status.textContent = prepared.length ? `${prepared.length} new photo${prepared.length === 1 ? "" : "s"} ready.` : "";
+  } catch (error) {
+    pendingWireEditImages.delete(postId);
+    preview.innerHTML = "";
+    input.value = "";
+    status.textContent = error.message;
+  } finally {
+    form.querySelectorAll("button").forEach((button) => {
+      button.disabled = false;
+    });
+  }
 });
 
 document.body.addEventListener("submit", (event) => {

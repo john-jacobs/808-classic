@@ -1397,6 +1397,111 @@ h2 {
   gap: 14px;
 }
 
+.wire-edit-media {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+}
+
+.wire-edit-media legend {
+  padding: 0 8px;
+  color: var(--orange-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wire-edit-media-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.wire-edit-media-item > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.wire-edit-media-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.wire-edit-media-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wire-edit-form label.inline,
+.wire-edit-new-media label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wire-edit-form label.inline input,
+.wire-edit-new-media label.inline input {
+  width: auto;
+}
+
+.wire-edit-form label.inline.danger {
+  color: #b42318;
+}
+
+.wire-edit-media-empty {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.wire-edit-new-media {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wire-edit-new-media figure {
+  min-width: 0;
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.wire-edit-new-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.wire-edit-new-media figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+}
+
+.wire-edit-new-media figcaption span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .wire-edit-actions {
   display: flex;
   gap: 10px;
@@ -2877,6 +2982,12 @@ td small {
 
   .wire-form-row,
   .wire-image-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .wire-edit-row,
+  .wire-edit-media-item,
+  .wire-edit-new-media {
     grid-template-columns: 1fr;
   }
 
