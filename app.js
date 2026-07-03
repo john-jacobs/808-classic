@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-profile-actions1";
+const APP_VERSION = "20260703-craig-guest1";
 
 const fallbackTrip = {
   players: [
@@ -313,6 +313,13 @@ const fallbackTrip = {
       role: "Family Contingent",
       image: "./assets/optimized/people/guests/elora-josh-kyla-900.webp",
       detail: "John's brother-in-law Josh and family. Elora is four; another niece will exist by trip time, with naming rights still pending.",
+    },
+    {
+      name: "Craig Lanza",
+      role: "Parallel Universe Guest",
+      image: "./assets/optimized/people/guests/craig-lanza-scotland-900.webp",
+      detail:
+        "Craig is married to Devon, who went to college with Julia, and is running a parallel Seattle golf weekend with his own crew. Their itinerary is unsettlingly familiar: Gold Mountain, Mariners, same weekend, but reversed with golf Friday and the game Saturday before they move on to Chambers Bay. It is the prestige-course alternate timeline, complete with wives, spa programming, and a level of domestic diplomacy the 808 Classic has not seriously attempted. There is almost no chance of an actual sighting, but somewhere nearby Craig is mogging our group by doing the same trip with better optics and a course that makes our schedule look like municipal research.",
     },
   ],
 };

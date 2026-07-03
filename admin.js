@@ -4,7 +4,7 @@ const coursesEl = document.querySelector("#adminCourses");
 const eventsEl = document.querySelector("#adminEvents");
 const addCourseBtn = document.querySelector("#addCourseBtn");
 const addEventBtn = document.querySelector("#addEventBtn");
-const APP_VERSION = "20260703-profile-actions1";
+const APP_VERSION = "20260703-craig-guest1";
 
 let adminLoaded = false;
 let courses = [];
