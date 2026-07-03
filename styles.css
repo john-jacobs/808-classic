@@ -1487,7 +1487,7 @@ h2 {
 }
 
 .settings-head {
-  align-items: end;
+  align-items: start;
 }
 
 .settings-head > div:first-child {
@@ -1605,8 +1605,10 @@ h2 {
 .settings-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 14px;
-  padding-bottom: 48px;
+  max-width: 520px;
 }
 
 .settings-actions button {
@@ -1632,8 +1634,8 @@ h2 {
   opacity: 0.5;
 }
 
-.settings-form[data-editing="false"] #saveSettingsBtn,
-.settings-form[data-editing="true"] #editSettingsBtn {
+.settings-body[data-settings-editing="false"] #saveSettingsBtn,
+.settings-body[data-settings-editing="true"] #editSettingsBtn {
   display: none;
 }
 

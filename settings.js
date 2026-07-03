@@ -4,7 +4,7 @@ const photoInput = document.querySelector("#profilePhotoInput");
 const photoThumb = document.querySelector("#profilePhotoThumb");
 const editButton = document.querySelector("#editSettingsBtn");
 const saveButton = document.querySelector("#saveSettingsBtn");
-const APP_VERSION = "20260703-settings-edit1";
+const APP_VERSION = "20260703-profile-actions1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
 let isEditing = false;
@@ -38,6 +38,8 @@ function setStatus(message, tone = "") {
 function syncFormState() {
   form.dataset.working = isWorking ? "true" : "false";
   form.dataset.editing = isEditing ? "true" : "false";
+  document.body.dataset.settingsWorking = isWorking ? "true" : "false";
+  document.body.dataset.settingsEditing = isEditing ? "true" : "false";
   form.querySelectorAll("input, select, textarea").forEach((control) => {
     const isFileInput = control === photoInput;
     control.disabled = isWorking || (!isEditing && (control.tagName === "SELECT" || isFileInput));

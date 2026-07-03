@@ -17,9 +17,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260703-settings-edit1" />
+    <link rel="stylesheet" href="./styles.css?v=20260703-profile-actions1" />
   </head>
-  <body class="settings-body">
+  <body class="settings-body" data-settings-editing="false" data-settings-working="true">
     <header class="topbar" aria-label="808 Classic primary navigation">
       <a class="brand" href="./index.html#overview" aria-label="808 Classic home">
         <span class="brand-mark">808</span>
@@ -46,8 +46,15 @@
     <main>
       <section class="section settings-section">
         <div class="section-head split settings-head">
-          <h2>Edit Profile</h2>
-          <a class="section-link" href="./index.html#attendees">Back to Field</a>
+          <div>
+            <h2>Edit Profile</h2>
+            <a class="section-link" href="./index.html#attendees">Back to Field</a>
+          </div>
+          <div class="settings-actions">
+            <button id="editSettingsBtn" class="secondary" type="button" disabled>Edit Profile</button>
+            <button id="saveSettingsBtn" type="submit" form="settingsForm" disabled>Save Profile</button>
+            <p id="settingsStatus" role="status"></p>
+          </div>
         </div>
 
         <form id="settingsForm" class="settings-form" data-editing="false" data-working="true">
@@ -132,16 +139,10 @@
               <textarea name="detail" rows="4" placeholder="Trip-specific notes for this year's field card."></textarea>
             </label>
           </div>
-
-          <div class="settings-actions">
-            <button id="editSettingsBtn" class="secondary" type="button" disabled>Edit Profile</button>
-            <button id="saveSettingsBtn" type="submit" disabled>Save Profile</button>
-            <p id="settingsStatus" role="status"></p>
-          </div>
         </form>
       </section>
     </main>
 
-    <script src="./settings.js?v=20260703-settings-edit1"></script>
+    <script src="./settings.js?v=20260703-profile-actions1"></script>
   </body>
 </html>
