@@ -553,12 +553,44 @@ h2 {
   color: #ffd6c0;
 }
 
-.wire-tools a:hover,
-.wire-tools a:focus-visible,
+.wire-create-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  color: #fff !important;
+  background: var(--orange);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0;
+}
+
+.wire-create-link::before {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--orange);
+  background: #fff;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .section-link:hover,
 .section-link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 4px;
+  outline: none;
+}
+
+.wire-create-link:hover,
+.wire-create-link:focus-visible {
+  background: #e34d00;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+  text-decoration: none;
   outline: none;
 }
 
