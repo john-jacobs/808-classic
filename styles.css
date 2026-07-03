@@ -113,6 +113,57 @@ main {
   }
 }
 
+@media (max-width: 1180px) and (min-width: 861px) {
+  .topbar {
+    gap: 12px;
+    padding-inline: clamp(14px, 2vw, 28px);
+  }
+
+  .brand {
+    min-width: 176px;
+    gap: 10px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .nav-links {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .nav-links a {
+    padding: 8px 5px;
+    font-size: clamp(0.62rem, 0.72vw, 0.76rem);
+    white-space: nowrap;
+  }
+
+  .account-link {
+    grid-template-columns: 32px;
+    flex: 0 0 auto;
+    padding: 3px;
+  }
+
+  .account-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .admin-link.visible,
+  .admin-link.active {
+    flex: 0 0 auto;
+    padding-inline: 9px;
+  }
+}
+
 .account-link {
   display: grid;
   grid-template-columns: 34px minmax(0, auto);
@@ -2544,6 +2595,87 @@ td small {
   .section-head.split {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 860px) and (min-width: 541px) {
+  html {
+    scroll-padding-top: 82px;
+  }
+
+  body {
+    padding-top: 82px;
+  }
+
+  .topbar {
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    min-height: 74px;
+    padding: 12px clamp(12px, 2vw, 18px);
+  }
+
+  .brand {
+    min-width: 150px;
+    gap: 9px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .nav-links {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .nav-links a {
+    padding: 8px 4px;
+    font-size: clamp(0.54rem, 1vw, 0.68rem);
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .account-link {
+    flex: 0 0 auto;
+    grid-template-columns: 32px;
+    margin-left: 0;
+    padding: 3px;
+  }
+
+  .account-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .admin-link.visible,
+  .admin-link.active {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding-inline: 8px;
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 680px) and (min-width: 541px) {
+  .brand {
+    min-width: 52px;
+  }
+
+  .brand > span:not(.brand-mark) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 
