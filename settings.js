@@ -2,7 +2,7 @@ const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
 const photoInput = document.querySelector("#profilePhotoInput");
 const photoThumb = document.querySelector("#profilePhotoThumb");
-const APP_VERSION = "20260620-admin-content1";
+const APP_VERSION = "20260703-settings-save1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
 
@@ -138,11 +138,12 @@ form.addEventListener("submit", async (event) => {
     setStatus("Settings did not finish loading, so nothing was saved. Refresh this page and try again.", "error");
     return;
   }
+  const payload = formPayload();
   setWorking(true, "Saving settings...");
   try {
     const data = await requestJson("/api/settings", {
       method: "PATCH",
-      body: JSON.stringify(formPayload()),
+      body: JSON.stringify(payload),
     });
     pendingPhotoDataUrl = "";
     photoInput.value = "";
