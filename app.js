@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-media2";
+const APP_VERSION = "20260703-wire-general1";
 const WIRE_MAX_IMAGE_DIMENSION = 1800;
 const WIRE_IMAGE_QUALITY = 0.78;
 const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -853,6 +853,7 @@ function wireTypeLabel(type = "") {
     score_update: "Score update",
     logistics: "Logistics",
     ruling: "Official ruling",
+    official_notice: "Official notice",
     daily_recap: "Daily recap",
   };
   return labels[type] || String(type || "Dispatch").replace(/_/g, " ");
@@ -896,7 +897,7 @@ function wireMediaCaption(item = {}, index = 0, post = {}) {
   if (index === 0 && scores.length >= 2) {
     return `Final card · ${scores[0].name.split(" ")[0]} ${scores[0].total}, ${scores[1].name.split(" ")[0]} ${scores[1].total}`;
   }
-  return index === 0 ? "Final card" : `Supporting image ${index + 1}`;
+  return index === 0 ? "Lead image" : `Supporting image ${index + 1}`;
 }
 
 function canManageWirePost(post = {}) {
@@ -927,6 +928,26 @@ function renderWireScoreSummary(scores = []) {
         .join("")}
     </div>
   `;
+}
+
+function wireStorySubject(metadata = {}) {
+  return firstPresent(metadata.subject, metadata.course);
+}
+
+function wireStoryContextNote(metadata = {}) {
+  return firstPresent(metadata.context_note, metadata.course_note);
+}
+
+function wireResultLabel(metadata = {}) {
+  return firstPresent(metadata.result?.label, "Final");
+}
+
+function wireScoreDetail(score = {}) {
+  const parts = [];
+  if (present(score.front)) parts.push(`Out ${score.front}`);
+  if (present(score.back)) parts.push(`In ${score.back}`);
+  if (present(score.to_par)) parts.push(score.to_par);
+  return parts.join(" · ");
 }
 
 function renderWire() {
@@ -1066,6 +1087,14 @@ function renderWireStory(post) {
   const featureImage = media[0]?.storage_path;
   const supportingMedia = media.slice(1);
   const scores = metadata.scorecard || [];
+  const subject = wireStorySubject(metadata);
+  const contextNote = wireStoryContextNote(metadata);
+  const facts = Array.isArray(metadata.facts) ? metadata.facts.filter((fact) => present(fact.label) && present(fact.value)) : [];
+  const entities = Array.isArray(metadata.entities)
+    ? metadata.entities.filter((entity) => present(entity.name) || present(entity.note))
+    : Array.isArray(metadata.participants)
+      ? metadata.participants.filter((entity) => present(entity.name) || present(entity.note))
+      : [];
   const published = formatWireDate(post.published_at || post.created_at);
 
   return `
@@ -1089,20 +1118,27 @@ function renderWireStory(post) {
 
       ${
         scores.length
-          ? `<div class="wire-result" aria-label="Final score">
-              <div class="wire-result-title"><span>Final</span><strong>${escapeHtml(metadata.course || "")}</strong></div>
+          ? `<div class="wire-result" aria-label="Score summary">
+              <div class="wire-result-title"><span>${escapeHtml(wireResultLabel(metadata))}</span><strong>${escapeHtml(subject)}</strong></div>
               ${scores
                 .map(
                   (score, index) => `
                     <div class="wire-score ${index === 0 ? "winner" : ""}">
                       <span>${escapeHtml(score.name)}</span>
-                      <small>Out ${escapeHtml(score.front)} · In ${escapeHtml(score.back)} · ${escapeHtml(score.to_par)}</small>
+                      ${wireScoreDetail(score) ? `<small>${escapeHtml(wireScoreDetail(score))}</small>` : ""}
                       <strong>${escapeHtml(score.total)}</strong>
                     </div>
                   `,
                 )
                 .join("")}
             </div>`
+          : metadata.result?.summary
+            ? `<div class="wire-result wire-result-general" aria-label="Outcome summary">
+                <div class="wire-result-title"><span>${escapeHtml(wireResultLabel(metadata))}</span><strong>${escapeHtml(subject)}</strong></div>
+                <div class="wire-score">
+                  <span>${escapeHtml(metadata.result.summary)}</span>
+                </div>
+              </div>`
           : ""
       }
 
@@ -1127,11 +1163,36 @@ function renderWireStory(post) {
             )
             .join("")}
           ${
-            metadata.course_note
+            contextNote || facts.length || entities.length
               ? `<div class="wire-course-note">
-                  <span>Course notes</span>
-                  <p>${escapeHtml(metadata.course_note)}</p>
-                  ${metadata.source_url ? `<a href="${escapeHtml(metadata.source_url)}" target="_blank" rel="noreferrer">Course history</a>` : ""}
+                  <span>Notebook</span>
+                  ${contextNote ? `<p>${escapeHtml(contextNote)}</p>` : ""}
+                  ${
+                    facts.length
+                      ? `<dl class="wire-fact-list">
+                          ${facts
+                            .map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`)
+                            .join("")}
+                        </dl>`
+                      : ""
+                  }
+                  ${
+                    entities.length
+                      ? `<dl class="wire-fact-list">
+                          ${entities
+                            .map(
+                              (entity) => `
+                                <div>
+                                  <dt>${escapeHtml(firstPresent(entity.role, "Related"))}</dt>
+                                  <dd>${escapeHtml(firstPresent(entity.name, entity.note))}${entity.name && entity.note ? ` · ${escapeHtml(entity.note)}` : ""}</dd>
+                                </div>
+                              `,
+                            )
+                            .join("")}
+                        </dl>`
+                      : ""
+                  }
+                  ${metadata.source_url ? `<a href="${escapeHtml(metadata.source_url)}" target="_blank" rel="noreferrer">Source</a>` : ""}
                 </div>`
               : ""
           }

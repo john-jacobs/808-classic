@@ -984,10 +984,14 @@ h2 {
 
 .wire-result {
   display: grid;
-  grid-template-columns: minmax(190px, 0.8fr) repeat(2, minmax(220px, 1fr));
+  grid-template-columns: minmax(190px, 0.8fr) repeat(auto-fit, minmax(220px, 1fr));
   color: #fff;
   background: var(--navy);
   border-bottom: 5px solid var(--orange);
+}
+
+.wire-result-general {
+  grid-template-columns: minmax(190px, 0.8fr) minmax(0, 2fr);
 }
 
 .wire-result-title,
@@ -1108,7 +1112,37 @@ h2 {
   line-height: 1.48;
 }
 
+.wire-fact-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.wire-fact-list div {
+  display: grid;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.wire-fact-list dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.wire-fact-list dd {
+  margin: 0;
+  color: var(--navy);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .wire-course-note a {
+  display: inline-block;
+  margin-top: 12px;
   color: var(--orange-dark);
   font-size: 0.7rem;
   font-weight: 900;

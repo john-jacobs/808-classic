@@ -25,12 +25,12 @@ const ARTICLE_SCHEMA = {
     },
     location: {
       type: "string",
-      description: "Course, city, or setting for the dispatch.",
+      description: "Place, city, course, venue, or general setting for the dispatch. Leave empty if the submission does not establish one.",
     },
     metadata: {
       type: "object",
       additionalProperties: false,
-      required: ["kind", "course", "course_note", "result", "scorecard"],
+      required: ["kind", "subject", "context_note", "result", "entities", "scorecard", "facts"],
       properties: {
         kind: {
           type: "string",
@@ -50,22 +50,51 @@ const ARTICLE_SCHEMA = {
           ],
           description: "Semantic Wire label. Use match_report only after a completed match/round; use match_preview before it happens.",
         },
-        course: { type: "string" },
-        course_note: { type: "string" },
+        subject: {
+          type: "string",
+          description: "The central subject of the dispatch, such as a match, person, quote, travel issue, ruling, photo set, logistics item, or general trip storyline.",
+        },
+        context_note: {
+          type: "string",
+          description: "Optional background note relevant to the story. This can be course history for match content, but can also be travel context, prior form, group lore, or an empty string.",
+        },
         result: {
-          type: "object",
+          type: ["object", "null"],
           additionalProperties: false,
-          required: ["winner", "winner_total", "runner_up", "runner_up_total", "margin"],
+          required: ["label", "summary", "winner", "margin"],
           properties: {
-            winner: { type: "string" },
-            winner_total: { type: ["number", "null"] },
-            runner_up: { type: "string" },
-            runner_up_total: { type: ["number", "null"] },
+            label: {
+              type: "string",
+              description: "Short result label, such as Final, Update, Decision, or Outcome.",
+            },
+            summary: {
+              type: "string",
+              description: "Human-readable outcome summary. Leave empty only when result is null.",
+            },
+            winner: {
+              type: "string",
+              description: "Winner or prevailing side when there is one; otherwise an empty string.",
+            },
             margin: { type: ["number", "null"] },
+          },
+        },
+        entities: {
+          type: "array",
+          description: "People, groups, places, objects, or named story elements worth identifying outside the article body. Use an empty array when the story does not need this structure.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name", "role", "note"],
+            properties: {
+              name: { type: "string" },
+              role: { type: "string" },
+              note: { type: "string" },
+            },
           },
         },
         scorecard: {
           type: "array",
+          description: "Only include rows when the submitted material supports actual score data. Use an empty array for non-match dispatches, previews without scores, photo drops, logistics, rumors, rulings, or general updates.",
           items: {
             type: "object",
             additionalProperties: false,
@@ -76,6 +105,19 @@ const ARTICLE_SCHEMA = {
               back: { type: ["number", "null"] },
               total: { type: ["number", "null"] },
               to_par: { type: "string" },
+            },
+          },
+        },
+        facts: {
+          type: "array",
+          description: "Small structured facts worth surfacing outside the story, such as time, place, status, quote source, travel detail, ruling, stat, or matchup note.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["label", "value"],
+            properties: {
+              label: { type: "string" },
+              value: { type: "string" },
             },
           },
         },
@@ -158,8 +200,8 @@ async function generateWireDraft(env, input, member, contextData) {
 
   const userText = {
     notes: cleanString(input.notes, 9000),
-    course_or_location: cleanString(input.location, 240),
-    score_or_result: cleanString(input.result, 1000),
+    location_or_context: cleanString(input.location, 240),
+    outcome_or_details: cleanString(input.result, 1000),
     image_notes: images.map(({ index, name, caption }) => ({ index, name, caption })),
     revision_notes: cleanString(input.revision, 2500),
     previous_draft: input.previousDraft && typeof input.previousDraft === "object" ? input.previousDraft : null,
@@ -177,11 +219,13 @@ async function generateWireDraft(env, input, member, contextData) {
           raw_submission: userText,
           app_context: contextData,
           editorial_priority:
-            "The submitted notes are the primary source. Use attached images as supporting evidence. Analyze scorecards, stat screenshots, and other golf data carefully. For ordinary photos, do not make visible details the main story unless the notes explicitly ask for a photo-driven post; use them mainly for captions, atmosphere, and verification.",
+            "The submitted notes are the primary source. Use attached images as supporting evidence. The Wire can cover matches, previews, rumors, logistics, rulings, travel, photos, daily recaps, people, quotes, and other trip storylines. Analyze scorecards, stat screenshots, and golf data carefully when present. For ordinary photos, do not make visible details the main story unless the notes explicitly ask for a photo-driven post; use them mainly for captions, atmosphere, and verification.",
           available_kinds:
             "Choose metadata.kind from: match_report, match_preview, practice_report, scouting_report, score_update, rumor_mill, photo_drop, photo_essay, logistics, official_notice, daily_recap, dispatch. Use match_report only for a completed match/round with a result. Use match_preview for an upcoming matchup or pre-round setup.",
           voice:
-            "Write like an actual sports dispatch for a private golf trip: game story, beat report, notebook, preview, recap, or column. Funny, dry, specific, observant, and self-deprecating toward the participants. The humor should come from treating mediocre friend golf, fragile confidence, bad swings, group-chat quotes, tiny rivalries, and questionable decisions with real sports-page attention. Roast the players affectionately using the submitted facts; do not be mean, generic, or sanitized. Ground the article in competitive stakes, form, matchups, pressure, swings, scoring, course conditions, quotes, and character. Avoid committee, bureaucracy, municipal, corporate, governance, department, jurisdiction, delegation, operations, or officialdom language unless the submitted notes explicitly ask for that joke. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
+            "Write like an actual sports dispatch for a private golf trip: game story, beat report, notebook, preview, recap, or column. Funny, dry, specific, observant, and self-deprecating toward the people involved. The humor should come from treating mediocre friend golf, fragile confidence, bad swings, group-chat quotes, tiny rivalries, and questionable decisions with real sports-page attention. Roast the players affectionately using the submitted facts when players are actually part of the story; do not be mean, generic, or sanitized. Ground the article in the submitted stakes, form, matchups, pressure, swings, scoring, course conditions, logistics, quotes, and character that are actually present. Avoid committee, bureaucracy, municipal, corporate, governance, department, jurisdiction, delegation, operations, or officialdom language unless the submitted notes explicitly ask for that joke. Preserve real details, avoid punching down, avoid slurs, do not invent scores, and mark unknown numeric score fields as null.",
+          metadata_rules:
+            "Use metadata.subject and metadata.context_note for general story context. Do not force a golf course into metadata.subject or metadata.context_note unless the submission is actually course-centered. Use metadata.result only when there is a real outcome, decision, final score, or status update; otherwise set it to null. Use metadata.entities only for people, groups, places, objects, or named story elements worth identifying outside the body; otherwise use an empty array. Use metadata.scorecard only for actual score rows; otherwise use an empty array. Use metadata.facts for compact supporting details that are true from the notes.",
           output_rules:
             "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over. Do not imitate bureaucratic wording from prior posts or site copy; use prior posts for facts and continuity only.",
         },

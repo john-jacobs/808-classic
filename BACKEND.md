@@ -58,8 +58,9 @@ The first visible feature should be the live feed:
 
 ## Wire Drafting
 
-`/wire-create.html` lets an authenticated member paste raw notes, add a course or
-result, attach images, and ask `/api/wire-drafts` for a structured article draft.
+`/wire-create.html` lets an authenticated member paste raw notes, add optional
+location/context or outcome details, attach images, and ask `/api/wire-drafts`
+for a structured article draft.
 The draft generator uses the OpenAI Responses API with a strict JSON schema so
 the frontend receives `headline`, `dek`, `body`, `location`, `metadata`, and
 image-caption suggestions in the same shape used by the 808 Wire renderer.
