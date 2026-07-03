@@ -491,7 +491,7 @@ h2 {
 .wire {
   width: 100%;
   margin: 0;
-  padding: 34px 0 44px;
+  padding: 38px 0 48px;
   color: #fff;
   background:
     linear-gradient(180deg, rgba(19, 41, 75, 0.98), rgba(17, 57, 39, 0.98)),
@@ -503,16 +503,17 @@ h2 {
 
 .wire-masthead {
   display: grid;
-  grid-template-columns: minmax(230px, 0.74fr) minmax(0, 1fr) auto;
-  gap: 26px;
+  grid-template-columns: minmax(220px, 0.68fr) minmax(360px, 1fr) minmax(130px, auto);
+  gap: clamp(18px, 3vw, 42px);
   align-items: end;
   width: min(1160px, calc(100% - 36px));
   margin: 0 auto;
-  padding: 0 0 18px;
+  padding: 0 0 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .wire-masthead h2 {
+  margin: 8px 0 0;
   color: #fff;
   font-size: clamp(2.1rem, 4vw, 3.65rem);
   line-height: 0.95;
@@ -527,26 +528,20 @@ h2 {
 
 .wire-masthead p {
   max-width: 620px;
-  margin: 0;
+  margin: 0 0 2px;
   color: rgba(255, 255, 255, 0.74);
   line-height: 1.55;
 }
 
-.wire-masthead span:last-child {
+.wire-tools {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  margin-bottom: 5px;
   text-align: right;
 }
 
-.wire-feed {
-  width: min(1160px, calc(100% - 36px));
-  margin: 0 auto;
-}
-
-.wire-actions {
-  width: min(1160px, calc(100% - 36px));
-  margin: 14px auto 0;
-}
-
-.wire-actions a,
+.wire-tools a,
 .section-link {
   color: var(--orange-dark);
   font-size: 0.72rem;
@@ -554,17 +549,22 @@ h2 {
   text-transform: uppercase;
 }
 
-.wire-actions a {
+.wire-tools a {
   color: #ffd6c0;
 }
 
-.wire-actions a:hover,
-.wire-actions a:focus-visible,
+.wire-tools a:hover,
+.wire-tools a:focus-visible,
 .section-link:hover,
 .section-link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 4px;
   outline: none;
+}
+
+.wire-feed {
+  width: min(1160px, calc(100% - 36px));
+  margin: 18px auto 0;
 }
 
 .wire-desk {
@@ -2487,7 +2487,7 @@ td small {
 
   .wire-masthead {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
     align-items: start;
   }
 
@@ -2496,8 +2496,13 @@ td small {
   }
 
   .wire-masthead h2,
-  .wire-masthead span:last-child {
+  .wire-tools {
     text-align: left;
+  }
+
+  .wire-tools {
+    justify-items: start;
+    margin-bottom: 0;
   }
 
   .wire-desk {
@@ -2752,7 +2757,7 @@ td small {
     padding: 0 0 14px;
   }
 
-  .wire-masthead span:last-child {
+  .wire-tools span {
     font-size: 0.58rem;
   }
 
