@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-create-cta1";
+const APP_VERSION = "20260703-all-wires1";
 
 const fallbackTrip = {
   players: [
@@ -822,7 +822,7 @@ function renderWireScoreSummary(scores = []) {
 function renderWire() {
   const posts = sortedWirePosts();
   const featured = posts[0];
-  const archivedPosts = posts.slice(1);
+  const allPostsCount = posts.length;
 
   if (!featured) {
     wireFeed.innerHTML = `<p class="wire-empty">No dispatches have cleared the desk.</p>`;
@@ -835,7 +835,7 @@ function renderWire() {
   wireFeed.innerHTML = `
     <div class="wire-desk solo">
       ${renderWireCard(featured, 0, true)}
-      ${archivedPosts.length ? `<a class="wire-archive-link" href="./wire.html">Previous wires <span>${archivedPosts.length}</span></a>` : ""}
+      ${allPostsCount ? `<a class="wire-archive-link" href="./wire.html">All wires <span>${allPostsCount}</span></a>` : ""}
     </div>
   `;
 
@@ -868,15 +868,14 @@ function renderWireCard(post, index, featured = false) {
 }
 
 function renderWireArchive(posts = sortedWirePosts()) {
-  const archivedPosts = posts.slice(1);
   if (!wireArchive) return;
 
-  if (!archivedPosts.length) {
-    wireArchive.innerHTML = `<p class="wire-archive-empty">No earlier dispatches yet.</p>`;
+  if (!posts.length) {
+    wireArchive.innerHTML = `<p class="wire-archive-empty">No dispatches have cleared the desk.</p>`;
     return;
   }
 
-  wireArchive.innerHTML = archivedPosts.map((post, index) => renderWireArchiveItem(post, index + 1)).join("");
+  wireArchive.innerHTML = posts.map((post, index) => renderWireArchiveItem(post, index)).join("");
 }
 
 function renderWireArchiveItem(post, index) {
