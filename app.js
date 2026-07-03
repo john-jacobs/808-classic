@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-media1";
+const APP_VERSION = "20260703-wire-media2";
 const WIRE_MAX_IMAGE_DIMENSION = 1800;
 const WIRE_IMAGE_QUALITY = 0.78;
 const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -1149,6 +1149,63 @@ function datetimeLocalValue(value) {
   return local.toISOString().slice(0, 16);
 }
 
+function wireEditMediaTile({ item = {}, index = 0, post = {}, isNew = false }) {
+  const id = isNew ? "" : item.id || "";
+  const storagePath = isNew ? "" : item.storage_path || "";
+  const originalStoragePath = isNew ? "" : item.original_storage_path || item.storage_path || "";
+  const tempId = isNew ? item.temp_id || "" : "";
+  const imageSrc = isNew ? item.data_url : item.storage_path;
+  const caption = isNew ? item.name || "" : wireMediaCaption(item, index, post);
+  const label = isNew ? "New" : index === 0 ? "Hero" : `Photo ${index + 1}`;
+
+  return `
+    <div class="wire-edit-media-item" data-media-id="${escapeHtml(id)}" data-media-path="${escapeHtml(storagePath)}" data-media-original-path="${escapeHtml(originalStoragePath)}" data-media-temp-id="${escapeHtml(tempId)}" data-media-new="${isNew ? "true" : "false"}">
+      <div class="wire-edit-thumb">
+        <img src="${escapeHtml(imageSrc)}" alt="" loading="lazy" decoding="async" />
+        <span class="wire-edit-media-badge">${escapeHtml(label)}</span>
+      </div>
+      <label>
+        Caption
+        <input name="caption_${escapeHtml(id || tempId || index)}" type="text" maxlength="240" value="${escapeHtml(caption)}" />
+      </label>
+      <div class="wire-edit-media-controls" aria-label="Photo controls">
+        <button type="button" data-wire-media-action="hero">Hero</button>
+        <button type="button" data-wire-media-action="up" aria-label="Move photo earlier">Left</button>
+        <button type="button" data-wire-media-action="down" aria-label="Move photo later">Right</button>
+        <button type="button" class="danger" data-wire-media-action="delete">Delete</button>
+        <button type="button" data-wire-media-action="restore">Undo</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateWireEditMediaState(list) {
+  if (!list) return;
+  const items = [...list.querySelectorAll(".wire-edit-media-item")];
+  const activeItems = items.filter((item) => item.dataset.mediaRemove !== "true");
+  items.forEach((item) => {
+    item.classList.toggle("is-removed", item.dataset.mediaRemove === "true");
+    item.classList.remove("is-hero");
+    const deleteButton = item.querySelector('[data-wire-media-action="delete"]');
+    const restoreButton = item.querySelector('[data-wire-media-action="restore"]');
+    const captionInput = item.querySelector('input[type="text"]');
+    if (deleteButton) deleteButton.hidden = item.dataset.mediaRemove === "true";
+    if (restoreButton) restoreButton.hidden = item.dataset.mediaRemove !== "true";
+    if (captionInput) captionInput.disabled = item.dataset.mediaRemove === "true";
+  });
+  activeItems[0]?.classList.add("is-hero");
+  activeItems.forEach((item, index) => {
+    const badge = item.querySelector(".wire-edit-media-badge");
+    const heroButton = item.querySelector('[data-wire-media-action="hero"]');
+    const upButton = item.querySelector('[data-wire-media-action="up"]');
+    const downButton = item.querySelector('[data-wire-media-action="down"]');
+    if (badge) badge.textContent = index === 0 ? "Hero" : `Photo ${index + 1}`;
+    if (heroButton) heroButton.disabled = index === 0;
+    if (upButton) upButton.disabled = index === 0;
+    if (downButton) downButton.disabled = index === activeItems.length - 1;
+  });
+}
+
 function renderWireEditForm(post) {
   const kind = post.metadata?.kind || post.type || "dispatch";
   const media = sortedWireMedia(post);
@@ -1209,57 +1266,17 @@ function renderWireEditForm(post) {
       </label>
       <fieldset class="wire-edit-media">
         <legend>Photos</legend>
-        ${
-          media.length
-            ? media
-                .map(
-                  (item, index) => `
-                    <div class="wire-edit-media-item" data-media-id="${escapeHtml(item.id || "")}" data-media-path="${escapeHtml(item.storage_path || "")}" data-media-original-path="${escapeHtml(item.original_storage_path || item.storage_path || "")}">
-                      <img src="${escapeHtml(item.storage_path)}" alt="" loading="lazy" decoding="async" />
-                      <div class="wire-edit-media-fields">
-                        <label>
-                          Caption
-                          <input name="caption_${escapeHtml(item.id || index)}" type="text" maxlength="240" value="${escapeHtml(wireMediaCaption(item, index, post))}" />
-                        </label>
-                        <div class="wire-edit-media-controls">
-                          <label class="inline">
-                            <input name="hero_media" type="radio" value="${escapeHtml(item.id || item.storage_path || index)}" ${index === 0 ? "checked" : ""} />
-                            Hero image
-                          </label>
-                          <label class="inline danger">
-                            <input name="remove_${escapeHtml(item.id || index)}" type="checkbox" />
-                            Remove
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  `,
-                )
-                .join("")
-            : `<p class="wire-edit-media-empty">No photos attached yet.</p>`
-        }
-        <label>
-          Add photos
-          <input name="new_media" type="file" accept="image/jpeg,image/png,image/webp" multiple data-wire-edit-images="${escapeHtml(post.id)}" />
-        </label>
-        <div class="wire-edit-new-media" data-wire-edit-new-media="${escapeHtml(post.id)}">
-          ${pendingImages
-            .map(
-              (image, index) => `
-                <figure>
-                  <img src="${image.data_url}" alt="" />
-                  <figcaption>
-                    <span>${escapeHtml(image.name)}</span>
-                    <label class="inline">
-                      <input name="hero_media" type="radio" value="new_${index}" />
-                      Hero image
-                    </label>
-                  </figcaption>
-                </figure>
-              `,
-            )
-            .join("")}
+        <div class="wire-edit-media-head">
+          <label class="wire-edit-add-photo">
+            Add photos
+            <input name="new_media" type="file" accept="image/jpeg,image/png,image/webp" multiple data-wire-edit-images="${escapeHtml(post.id)}" />
+          </label>
         </div>
+        <div class="wire-edit-media-list" data-wire-edit-media-list="${escapeHtml(post.id)}">
+          ${media.map((item, index) => wireEditMediaTile({ item, index, post })).join("")}
+          ${pendingImages.map((image, index) => wireEditMediaTile({ item: image, index: media.length + index, post, isNew: true })).join("")}
+        </div>
+        <p class="wire-edit-media-empty"${media.length || pendingImages.length ? " hidden" : ""}>No photos attached yet.</p>
       </fieldset>
       <div class="wire-edit-actions">
         <button type="submit">Save Changes</button>
@@ -1288,6 +1305,7 @@ function openWireEdit(postId) {
   if (!post) return;
   pendingWireEditImages.delete(postId);
   wireDialogContent.innerHTML = renderWireEditForm(post);
+  updateWireEditMediaState(wireDialogContent.querySelector("[data-wire-edit-media-list]"));
   wireDialog.showModal();
 }
 
@@ -1304,14 +1322,32 @@ async function refreshWireAfterManage(postId = "") {
 
 function collectWireEditMedia(form, post) {
   const mediaItems = [...form.querySelectorAll(".wire-edit-media-item")];
-  const heroValue = String(new FormData(form).get("hero_media") || "");
-  const existing = mediaItems.map((item, index) => {
+  let sortOrder = 0;
+  return mediaItems
+    .map((item) => {
+      const remove = item.dataset.mediaRemove === "true";
+      const isNew = item.dataset.mediaNew === "true";
+      const caption = item.querySelector('input[type="text"]')?.value || "";
+      const order = remove ? 999 : sortOrder++;
+
+      if (isNew) {
+        if (remove) return null;
+        const pending = (pendingWireEditImages.get(post.id) || []).find((image) => image.temp_id === item.dataset.mediaTempId);
+        if (!pending) return null;
+        return {
+          data_url: pending.data_url,
+          type: pending.type,
+          width: pending.width,
+          height: pending.height,
+          caption,
+          remove: false,
+          sort_order: order,
+        };
+      }
+
     const id = item.dataset.mediaId || "";
     const storagePath = item.dataset.mediaPath || "";
     const originalStoragePath = item.dataset.mediaOriginalPath || storagePath;
-    const caption = item.querySelector('input[type="text"]')?.value || "";
-    const remove = Boolean(item.querySelector('input[type="checkbox"]')?.checked);
-    const heroKey = id || storagePath || String(index);
     const source = (post.media || []).find((media) => media.id === id || media.storage_path === storagePath) || {};
     return {
       id,
@@ -1321,25 +1357,10 @@ function collectWireEditMedia(form, post) {
       height: source.height || null,
       caption,
       remove,
-      isHero: heroValue === heroKey,
+      sort_order: order,
     };
-  });
-  const newImages = (pendingWireEditImages.get(post.id) || []).map((image) => ({
-    data_url: image.data_url,
-    type: image.type,
-    width: image.width,
-    height: image.height,
-    caption: image.name || "",
-    remove: false,
-  }));
-  newImages.forEach((image, index) => {
-    image.isHero = heroValue === `new_${index}`;
-  });
-  const allMedia = [...existing, ...newImages];
-  return [...allMedia.filter((item) => item.isHero), ...allMedia.filter((item) => !item.isHero)].map((item, index) => ({
-    ...item,
-    sort_order: index,
-  }));
+    })
+    .filter(Boolean);
 }
 
 async function saveWireEdit(form) {
@@ -1731,6 +1752,46 @@ document.body.addEventListener("click", (event) => {
     return;
   }
 
+  const mediaAction = event.target.closest("[data-wire-media-action]");
+  if (mediaAction) {
+    const item = mediaAction.closest(".wire-edit-media-item");
+    const list = mediaAction.closest("[data-wire-edit-media-list]");
+    const action = mediaAction.dataset.wireMediaAction;
+    if (!item || !list) return;
+
+    if (action === "hero") {
+      const firstActive = [...list.querySelectorAll(".wire-edit-media-item")].find((tile) => tile.dataset.mediaRemove !== "true");
+      if (firstActive && firstActive !== item) list.insertBefore(item, firstActive);
+    }
+    if (action === "up") {
+      const active = [...list.querySelectorAll(".wire-edit-media-item")].filter((tile) => tile.dataset.mediaRemove !== "true");
+      const previous = active[active.indexOf(item) - 1];
+      if (previous) list.insertBefore(item, previous);
+    }
+    if (action === "down") {
+      const active = [...list.querySelectorAll(".wire-edit-media-item")].filter((tile) => tile.dataset.mediaRemove !== "true");
+      const next = active[active.indexOf(item) + 1];
+      if (next) list.insertBefore(next, item);
+    }
+    if (action === "delete") {
+      if (item.dataset.mediaNew === "true") {
+        item.remove();
+      } else {
+        item.dataset.mediaRemove = "true";
+        list.append(item);
+      }
+    }
+    if (action === "restore") {
+      item.dataset.mediaRemove = "false";
+    }
+    updateWireEditMediaState(list);
+    list.closest(".wire-edit-media")?.querySelector(".wire-edit-media-empty")?.toggleAttribute(
+      "hidden",
+      Boolean(list.querySelector('.wire-edit-media-item:not([data-media-remove="true"])')),
+    );
+    return;
+  }
+
   const editTarget = event.target.closest("[data-wire-edit]");
   if (editTarget) {
     openWireEdit(editTarget.dataset.wireEdit);
@@ -1815,9 +1876,11 @@ document.body.addEventListener("change", async (event) => {
 
   const postId = input.dataset.wireEditImages;
   const form = input.closest("[data-wire-edit-form]");
+  const post = wirePosts.find((item) => item.id === postId);
   const status = form?.querySelector(".wire-edit-status");
-  const preview = form?.querySelector(`[data-wire-edit-new-media="${CSS.escape(postId)}"]`);
-  if (!postId || !form || !preview) return;
+  const list = form?.querySelector(`[data-wire-edit-media-list="${CSS.escape(postId)}"]`);
+  const empty = form?.querySelector(".wire-edit-media-empty");
+  if (!postId || !form || !list || !post) return;
 
   status.textContent = "Preparing photos...";
   form.querySelectorAll("button").forEach((button) => {
@@ -1825,35 +1888,26 @@ document.body.addEventListener("change", async (event) => {
   });
 
   try {
-    const keptMediaCount = [...form.querySelectorAll(".wire-edit-media-item")].filter(
-      (item) => !item.querySelector('input[type="checkbox"]')?.checked,
-    ).length;
+    const keptMediaCount = [...form.querySelectorAll(".wire-edit-media-item")].filter((item) => item.dataset.mediaRemove !== "true").length;
     const files = [...(input.files || [])].slice(0, Math.max(0, 6 - keptMediaCount));
     const prepared = [];
     for (const file of files) {
-      prepared.push(await prepareWireEditImage(file));
+      prepared.push({
+        ...(await prepareWireEditImage(file)),
+        temp_id: globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `new-${Date.now()}-${prepared.length}`,
+      });
     }
-    pendingWireEditImages.set(postId, prepared);
-    preview.innerHTML = prepared
-      .map(
-        (image, index) => `
-          <figure>
-            <img src="${image.data_url}" alt="" />
-            <figcaption>
-              <span>${escapeHtml(image.name)}</span>
-              <label class="inline">
-                <input name="hero_media" type="radio" value="new_${index}" />
-                Hero image
-              </label>
-            </figcaption>
-          </figure>
-        `,
-      )
-      .join("");
+    const previousPending = pendingWireEditImages.get(postId) || [];
+    pendingWireEditImages.set(postId, [...previousPending, ...prepared]);
+    list.insertAdjacentHTML(
+      "beforeend",
+      prepared.map((image, index) => wireEditMediaTile({ item: image, index: keptMediaCount + index, post, isNew: true })).join(""),
+    );
+    updateWireEditMediaState(list);
+    empty?.toggleAttribute("hidden", Boolean(list.querySelector('.wire-edit-media-item:not([data-media-remove="true"])')));
     status.textContent = prepared.length ? `${prepared.length} new photo${prepared.length === 1 ? "" : "s"} ready.` : "";
   } catch (error) {
     pendingWireEditImages.delete(postId);
-    preview.innerHTML = "";
     input.value = "";
     status.textContent = error.message;
   } finally {

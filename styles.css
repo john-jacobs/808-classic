@@ -1399,65 +1399,150 @@ h2 {
 
 .wire-edit-media {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   margin: 0;
-  padding: 14px;
+  padding: 16px;
+  background: #fff;
   border: 1px solid var(--line);
 }
 
+.wire-edit-media-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .wire-edit-media legend {
-  padding: 0 8px;
   color: var(--orange-dark);
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.wire-edit-media-item {
-  display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  gap: 12px;
-  align-items: stretch;
-  padding: 10px;
-  background: #fff;
-  border: 1px solid var(--line);
-}
-
-.wire-edit-media-item > img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
-
-.wire-edit-media-fields {
-  display: grid;
-  gap: 10px;
-}
-
-.wire-edit-media-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.wire-edit-form label.inline,
-.wire-edit-new-media label.inline {
+.wire-edit-add-photo {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--ink);
-  font-size: 0.7rem;
+  min-height: 34px;
+  padding: 0 12px;
+  color: #fff;
+  background: var(--navy);
+  border: 1px solid var(--navy);
+  cursor: pointer;
+  font-size: 0.68rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.wire-edit-form label.inline input,
-.wire-edit-new-media label.inline input {
-  width: auto;
+.wire-edit-add-photo input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
-.wire-edit-form label.inline.danger {
+.wire-edit-media-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 10px;
+}
+
+.wire-edit-media-item {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.wire-edit-media-item.is-hero {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(255, 95, 5, 0.14);
+}
+
+.wire-edit-media-item.is-removed {
+  opacity: 0.55;
+}
+
+.wire-edit-thumb {
+  position: relative;
+}
+
+.wire-edit-thumb img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.wire-edit-media-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  padding: 4px 7px;
+  color: #fff;
+  background: rgba(9, 17, 30, 0.82);
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wire-edit-media-item.is-hero .wire-edit-media-badge {
+  background: var(--orange);
+}
+
+.wire-edit-media-item.is-removed .wire-edit-media-badge {
+  background: #b42318;
+}
+
+.wire-edit-media-item.is-removed .wire-edit-media-badge::after {
+  content: " deleted";
+}
+
+.wire-edit-media-item label {
+  gap: 5px;
+  font-size: 0.58rem;
+}
+
+.wire-edit-media-item input[type="text"] {
+  min-height: 34px;
+  padding: 7px 8px;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.wire-edit-media-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.wire-edit-media-controls button {
+  min-height: 28px;
+  padding: 0 7px;
+  color: var(--navy);
+  background: #fff;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wire-edit-media-controls button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.wire-edit-media-controls .danger {
   color: #b42318;
 }
 
@@ -1465,41 +1550,6 @@ h2 {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
-}
-
-.wire-edit-new-media {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.wire-edit-new-media figure {
-  min-width: 0;
-  margin: 0;
-  background: #fff;
-  border: 1px solid var(--line);
-}
-
-.wire-edit-new-media img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-}
-
-.wire-edit-new-media figcaption {
-  display: grid;
-  gap: 6px;
-  padding: 8px;
-}
-
-.wire-edit-new-media figcaption span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 0.62rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .wire-edit-actions {
@@ -2986,8 +3036,7 @@ td small {
   }
 
   .wire-edit-row,
-  .wire-edit-media-item,
-  .wire-edit-new-media {
+  .wire-edit-media-list {
     grid-template-columns: 1fr;
   }
 
