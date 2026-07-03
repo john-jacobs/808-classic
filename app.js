@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-all-wires1";
+const APP_VERSION = "20260703-wire-article1";
 
 const fallbackTrip = {
   players: [
@@ -326,6 +326,7 @@ const fallbackTrip = {
 
 const fallbackWirePosts = [
   {
+    id: "80800000-0000-4000-8002-000000000001",
     type: "dispatch",
     pinned: true,
     headline: "Chuck Turns Back Arnaud at Macktown, 105-114",
@@ -359,6 +360,7 @@ Chuck offered no reciprocal evaluation of Arnaud. Asked for comment, he first as
     ],
   },
   {
+    id: "80800000-0000-4000-8002-000000000002",
     type: "dispatch",
     headline: "Chuck Opens Big Run Mentorship Program, Escapes 117-119",
     dek: "At his home course, the defending champion guided a younger math-department colleague through Big Run and survived despite 46 putts, five penalties, and another formal statement about the greens.",
@@ -432,6 +434,7 @@ let currentMember = null;
 const leaderboard = document.querySelector("#leaderboard");
 const wireFeed = document.querySelector("#wireFeed");
 const wireArchive = document.querySelector("#wireArchive");
+const wireArticle = document.querySelector("#wireArticle");
 const wireDate = document.querySelector("#wireDate");
 const travelRows = document.querySelector("#travelRows");
 const lodgingGrid = document.querySelector("#lodgingGrid");
@@ -455,6 +458,7 @@ const navSections = navLinks
 let pendingNavSectionId = "";
 let pendingNavTimer = null;
 const isWireArchivePage = document.body.dataset.page === "wire-archive";
+const isWireArticlePage = document.body.dataset.page === "wire-article";
 const countdownTarget = new Date("2026-07-16T16:00:00-07:00").getTime();
 const countdownEls = {
   days: document.querySelector("#countdownDays"),
@@ -765,6 +769,19 @@ function wirePostLabel(post = {}) {
   return wireTypeLabel(post.metadata?.kind || post.type);
 }
 
+function wirePostUrl(post = {}) {
+  return `./wire-article.html?id=${encodeURIComponent(post.id || "")}`;
+}
+
+function currentWirePostId() {
+  return new URLSearchParams(window.location.search).get("id") || "";
+}
+
+function absoluteUrl(path = "") {
+  if (!present(path)) return "";
+  return new URL(path, window.location.href).href;
+}
+
 function sortedWireMedia(post = {}) {
   return [...(post.media || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
 }
@@ -861,7 +878,7 @@ function renderWireCard(post, index, featured = false) {
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
         <p>${escapeHtml(wireExcerpt(post, featured ? 210 : 118))}</p>
         ${renderWireScoreSummary(scores)}
-        <button type="button" data-wire-post="${index}">${featured ? "Read report" : "Open"}</button>
+        <a class="wire-read-link" href="${escapeHtml(wirePostUrl(post))}">${featured ? "Read report" : "Open"}</a>
       </div>
     </article>
   `;
@@ -896,9 +913,57 @@ function renderWireArchiveItem(post, index) {
         <h3>${escapeHtml(post.headline || "Untitled dispatch")}</h3>
         <p>${escapeHtml(wireExcerpt(post, 180))}</p>
         ${renderWireScoreSummary(scores)}
-        <button type="button" data-wire-post="${index}">Read report</button>
+        <a class="wire-read-link" href="${escapeHtml(wirePostUrl(post))}">Read report</a>
       </div>
     </article>
+  `;
+}
+
+function renderWireArticlePage() {
+  if (!wireArticle) return;
+  const postId = currentWirePostId();
+  const post = wirePosts.find((item) => item.id === postId);
+
+  if (!post) {
+    document.title = "Wire Dispatch Not Found | 808 Classic";
+    wireArticle.innerHTML = `
+      <section class="section wire-article-page" aria-label="Wire dispatch not found">
+        <div class="wire-article-shell">
+          <div class="wire-article-actions">
+            <a class="section-link" href="./wire.html">All Wires</a>
+            <a class="section-link" href="./index.html#wire">Back to latest</a>
+          </div>
+          <p class="wire-archive-empty">That dispatch is not on the board anymore.</p>
+        </div>
+      </section>
+    `;
+    return;
+  }
+
+  const title = post.headline || "808 Wire Dispatch";
+  document.title = `${title} | 808 Classic`;
+  const description = firstPresent(post.dek, wireExcerpt(post, 155));
+  const image = absoluteUrl(sortedWireMedia(post)[0]?.storage_path || "./assets/og-image.png");
+  document.querySelector('link[rel="canonical"]')?.setAttribute("href", window.location.href);
+  document.querySelector('meta[name="description"]')?.setAttribute("content", description || "A dispatch from the 808 Wire.");
+  document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+  document.querySelector('meta[property="og:description"]')?.setAttribute("content", description || "A dispatch from the 808 Wire.");
+  document.querySelector('meta[property="og:url"]')?.setAttribute("content", window.location.href);
+  document.querySelector('meta[property="og:image"]')?.setAttribute("content", image);
+  document.querySelector('meta[name="twitter:title"]')?.setAttribute("content", title);
+  document.querySelector('meta[name="twitter:description"]')?.setAttribute("content", description || "A dispatch from the 808 Wire.");
+  document.querySelector('meta[name="twitter:image"]')?.setAttribute("content", image);
+
+  wireArticle.innerHTML = `
+    <section class="section wire-article-page" aria-label="808 Wire dispatch">
+      <div class="wire-article-shell">
+        <div class="wire-article-actions">
+          <a class="section-link" href="./wire.html">All Wires</a>
+          <a class="section-link" href="./index.html#wire">Back to latest</a>
+        </div>
+        ${renderWireStory(post)}
+      </div>
+    </section>
   `;
 }
 
@@ -1078,6 +1143,11 @@ function openWireEdit(postId) {
 
 async function refreshWireAfterManage(postId = "") {
   await loadWire();
+  if (isWireArticlePage) {
+    renderWireArticlePage();
+    wireDialog?.close();
+    return;
+  }
   renderWire();
   if (postId) openWirePostById(postId);
 }
@@ -1128,7 +1198,11 @@ async function deleteWirePost(postId) {
   if (!confirmed) return;
 
   await postJson(`/api/posts?id=${encodeURIComponent(postId)}`, { method: "DELETE" });
-  wireDialog.close();
+  wireDialog?.close();
+  if (isWireArticlePage) {
+    window.location.href = "./wire.html";
+    return;
+  }
   await refreshWireAfterManage();
 }
 
@@ -1473,6 +1547,11 @@ document.body.addEventListener("click", (event) => {
 
   const cancelEditTarget = event.target.closest("[data-wire-cancel-edit]");
   if (cancelEditTarget) {
+    if (isWireArticlePage) {
+      wireDialog?.close();
+      renderWireArticlePage();
+      return;
+    }
     openWirePostById(cancelEditTarget.dataset.wireCancelEdit);
     return;
   }
@@ -1482,12 +1561,6 @@ document.body.addEventListener("click", (event) => {
     deleteWirePost(deleteTarget.dataset.wireDelete).catch((error) => {
       window.alert(error.message);
     });
-    return;
-  }
-
-  const wireTarget = event.target.closest("[data-wire-post]");
-  if (wireTarget) {
-    openWirePost(Number(wireTarget.dataset.wirePost));
     return;
   }
 
@@ -1520,6 +1593,11 @@ document.body.addEventListener("keydown", (event) => {
   const cancelEditTarget = event.target.closest("[data-wire-cancel-edit]");
   if (cancelEditTarget) {
     event.preventDefault();
+    if (isWireArticlePage) {
+      wireDialog?.close();
+      renderWireArticlePage();
+      return;
+    }
     openWirePostById(cancelEditTarget.dataset.wireCancelEdit);
     return;
   }
@@ -1530,13 +1608,6 @@ document.body.addEventListener("keydown", (event) => {
     deleteWirePost(deleteTarget.dataset.wireDelete).catch((error) => {
       window.alert(error.message);
     });
-    return;
-  }
-
-  const wireTarget = event.target.closest("[data-wire-post]");
-  if (wireTarget) {
-    event.preventDefault();
-    openWirePost(Number(wireTarget.dataset.wirePost));
     return;
   }
 
@@ -1589,6 +1660,20 @@ async function init() {
       currentMember = null;
     }
     renderWireArchive(sortedWirePosts());
+    return;
+  }
+
+  if (isWireArticlePage) {
+    const [wireResult, sessionResult] = await Promise.allSettled([loadWire(), loadSession()]);
+    if (wireResult.status === "rejected") {
+      console.warn("The 808 Wire could not be loaded.", wireResult.reason);
+      wirePosts = fallbackWirePosts;
+    }
+    if (sessionResult.status === "rejected") {
+      console.warn("Session could not be loaded.", sessionResult.reason);
+      currentMember = null;
+    }
+    renderWireArticlePage();
     return;
   }
 

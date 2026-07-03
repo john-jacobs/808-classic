@@ -763,21 +763,19 @@ h2 {
   color: var(--orange-dark);
 }
 
-.wire-card button {
+.wire-card .wire-read-link {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
   min-height: 34px;
-  padding: 0;
   color: var(--orange-dark);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.wire-card button:hover,
-.wire-card button:focus-visible {
+.wire-card .wire-read-link:hover,
+.wire-card .wire-read-link:focus-visible {
   color: var(--navy);
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -830,6 +828,30 @@ h2 {
 .wire-archive-page {
   min-height: calc(100vh - 74px);
   padding-top: 54px;
+}
+
+.wire-article-page {
+  min-height: calc(100vh - 74px);
+  padding-top: 34px;
+  background: #fff;
+}
+
+.wire-article-shell {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+}
+
+.wire-article-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 0 24px;
+}
+
+.wire-article-page .wire-story {
+  padding-bottom: 20px;
 }
 
 .section-actions {
@@ -891,21 +913,19 @@ h2 {
   line-height: 1.6;
 }
 
-.wire-archive-copy button {
+.wire-archive-copy .wire-read-link {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
   min-height: 34px;
-  padding: 0;
   color: var(--orange-dark);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.wire-archive-copy button:hover,
-.wire-archive-copy button:focus-visible {
+.wire-archive-copy .wire-read-link:hover,
+.wire-archive-copy .wire-read-link:focus-visible {
   color: var(--navy);
   text-decoration: underline;
   text-underline-offset: 4px;

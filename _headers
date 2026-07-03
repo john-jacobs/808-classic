@@ -7,6 +7,9 @@
 /wire.html
   Cache-Control: no-cache, no-store, must-revalidate
 
+/wire-article.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /wire-create.html
   Cache-Control: no-cache, no-store, must-revalidate
 

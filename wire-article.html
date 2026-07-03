@@ -6,30 +6,30 @@
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="pragma" content="no-cache" />
     <meta http-equiv="expires" content="0" />
-    <title>All Wires | 808 Classic</title>
-    <meta name="description" content="All dispatches from the 808 Wire." />
+    <title>808 Wire Dispatch | 808 Classic</title>
+    <meta name="description" content="A dispatch from the 808 Wire." />
     <meta name="theme-color" content="#ff5f05" />
-    <link rel="canonical" href="https://808classic.com/wire.html" />
+    <link rel="canonical" href="https://808classic.com/wire-article.html" />
     <link rel="icon" href="./assets/favicon.ico" sizes="any" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="manifest" href="./site.webmanifest" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="article" />
     <meta property="og:site_name" content="808 Classic" />
-    <meta property="og:title" content="All Wires | 808 Classic" />
-    <meta property="og:description" content="All dispatches from the 808 Wire." />
-    <meta property="og:url" content="https://808classic.com/wire.html" />
+    <meta property="og:title" content="808 Wire Dispatch" />
+    <meta property="og:description" content="A dispatch from the 808 Wire." />
+    <meta property="og:url" content="https://808classic.com/wire-article.html" />
     <meta property="og:image" content="https://808classic.com/assets/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="All Wires | 808 Classic" />
-    <meta name="twitter:description" content="All dispatches from the 808 Wire." />
+    <meta name="twitter:title" content="808 Wire Dispatch" />
+    <meta name="twitter:description" content="A dispatch from the 808 Wire." />
     <meta name="twitter:image" content="https://808classic.com/assets/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=20260703-wire-media1" />
   </head>
-  <body data-page="wire-archive">
+  <body data-page="wire-article">
     <header class="topbar" aria-label="808 Classic primary navigation">
       <a class="brand" href="./index.html#overview" aria-label="808 Classic home">
         <span class="brand-mark">808</span>
@@ -55,21 +55,16 @@
       <a class="admin-link" href="./admin.html">Admin</a>
     </header>
 
-    <main>
-      <section id="wire-archive" class="section wire-archive wire-archive-page" aria-label="All 808 Wire dispatches">
-        <div class="section-head split">
-          <h2>All Wires</h2>
-          <div class="section-actions">
-            <a class="section-link" href="./wire-create.html">Create Wire</a>
-            <a class="section-link" href="./index.html#wire">Back to latest</a>
-          </div>
+    <main id="wireArticle" aria-live="polite">
+      <section class="section wire-article-page" aria-label="Loading 808 Wire dispatch">
+        <div class="wire-article-shell">
+          <p class="wire-archive-empty">Loading dispatch...</p>
         </div>
-        <div id="wireArchive" class="wire-archive-list" aria-live="polite"></div>
       </section>
     </main>
 
     <dialog id="wireDialog" class="wire-dialog">
-      <button class="dialog-close" type="button" aria-label="Close Wire dispatch">x</button>
+      <button class="dialog-close" type="button" aria-label="Close Wire editor">x</button>
       <div id="wireDialogContent"></div>
     </dialog>
 
