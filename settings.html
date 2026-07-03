@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260703-nav-jump1" />
+    <link rel="stylesheet" href="./styles.css?v=20260703-settings-edit1" />
   </head>
   <body class="settings-body">
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -32,7 +32,9 @@
         <a href="./index.html#wire">Wire</a>
         <a href="./index.html#leaderboard-section">Leaderboard</a>
         <a href="./index.html#events">Schedule</a>
+        <a href="./index.html#courses">Courses</a>
         <a href="./index.html#attendees">Field</a>
+        <a href="./index.html#lodging">Logistics</a>
       </nav>
       <a class="account-link active" href="./settings.html" aria-label="Edit profile">
         <img src="./assets/favicon.svg" alt="" />
@@ -48,7 +50,7 @@
           <a class="section-link" href="./index.html#attendees">Back to Field</a>
         </div>
 
-        <form id="settingsForm" class="settings-form">
+        <form id="settingsForm" class="settings-form" data-editing="false" data-working="true">
           <div class="settings-panel">
             <p class="wire-label">Profile</p>
             <div class="settings-photo-upload">
@@ -132,13 +134,14 @@
           </div>
 
           <div class="settings-actions">
-            <button type="submit">Save Settings</button>
+            <button id="editSettingsBtn" class="secondary" type="button" disabled>Edit Profile</button>
+            <button id="saveSettingsBtn" type="submit" disabled>Save Profile</button>
             <p id="settingsStatus" role="status"></p>
           </div>
         </form>
       </section>
     </main>
 
-    <script src="./settings.js?v=20260703-nav-jump1"></script>
+    <script src="./settings.js?v=20260703-settings-edit1"></script>
   </body>
 </html>

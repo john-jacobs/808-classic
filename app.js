@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-nav-jump1";
+const APP_VERSION = "20260703-settings-edit1";
 
 const fallbackTrip = {
   players: [
@@ -1379,7 +1379,7 @@ function updateActiveNav() {
   setActiveNav(current?.id);
 }
 
-function scrollToNavSection(sectionId) {
+function scrollToNavSection(sectionId, { replace = false } = {}) {
   const section = document.getElementById(sectionId);
   if (!section) return;
 
@@ -1388,13 +1388,19 @@ function scrollToNavSection(sectionId) {
   setActiveNav(sectionId);
 
   const targetTop = Math.max(0, section.getBoundingClientRect().top + window.scrollY - topbarHeight() - 4);
-  window.history.pushState(null, "", `#${sectionId}`);
+  window.history[replace ? "replaceState" : "pushState"](null, "", `#${sectionId}`);
   window.scrollTo({ top: targetTop, behavior: "auto" });
 
   pendingNavTimer = window.setTimeout(() => {
     pendingNavSectionId = "";
     updateActiveNav();
   }, 160);
+}
+
+function applyInitialHashTarget() {
+  const sectionId = window.location.hash.slice(1);
+  if (!sectionId || !document.getElementById(sectionId)) return;
+  window.setTimeout(() => scrollToNavSection(sectionId, { replace: true }), 0);
 }
 
 async function copyText(text) {
@@ -1558,6 +1564,7 @@ function renderAll() {
   renderAttendees();
   renderGuests();
   updateActiveNav();
+  applyInitialHashTarget();
 }
 
 async function init() {

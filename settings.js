@@ -2,9 +2,13 @@ const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
 const photoInput = document.querySelector("#profilePhotoInput");
 const photoThumb = document.querySelector("#profilePhotoThumb");
-const APP_VERSION = "20260703-nav-jump1";
+const editButton = document.querySelector("#editSettingsBtn");
+const saveButton = document.querySelector("#saveSettingsBtn");
+const APP_VERSION = "20260703-settings-edit1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
+let isEditing = false;
+let isWorking = false;
 
 async function ensureFreshAppVersion() {
   try {
@@ -31,11 +35,29 @@ function setStatus(message, tone = "") {
   statusEl.dataset.tone = tone;
 }
 
-function setWorking(isWorking, message = "") {
+function syncFormState() {
   form.dataset.working = isWorking ? "true" : "false";
-  form.querySelectorAll("button, input, select, textarea").forEach((control) => {
-    control.disabled = isWorking;
+  form.dataset.editing = isEditing ? "true" : "false";
+  form.querySelectorAll("input, select, textarea").forEach((control) => {
+    const isFileInput = control === photoInput;
+    control.disabled = isWorking || (!isEditing && (control.tagName === "SELECT" || isFileInput));
+    if (control.tagName === "INPUT" || control.tagName === "TEXTAREA") {
+      control.readOnly = !isEditing && !isFileInput;
+    }
   });
+  editButton.disabled = isWorking || !settingsLoaded || isEditing;
+  saveButton.disabled = isWorking || !settingsLoaded || !isEditing;
+}
+
+function setEditMode(nextEditing, message = "") {
+  isEditing = Boolean(nextEditing);
+  syncFormState();
+  if (message) setStatus(message, "");
+}
+
+function setWorking(nextWorking, message = "") {
+  isWorking = Boolean(nextWorking);
+  syncFormState();
   if (message) setStatus(message, isWorking ? "working" : "");
 }
 
@@ -124,18 +146,24 @@ function formPayload() {
 
 async function loadSettings() {
   settingsLoaded = false;
+  isEditing = false;
   setWorking(true, "Loading settings...");
   const data = await requestJson("/api/settings");
   fillForm(data);
   settingsLoaded = true;
   setWorking(false);
-  setStatus("Settings loaded.", "success");
+  setEditMode(false);
+  setStatus("Profile loaded. Tap Edit Profile to make changes.", "success");
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!settingsLoaded) {
     setStatus("Settings did not finish loading, so nothing was saved. Refresh this page and try again.", "error");
+    return;
+  }
+  if (!isEditing) {
+    setStatus("Tap Edit Profile before making changes.", "error");
     return;
   }
   const payload = formPayload();
@@ -149,14 +177,22 @@ form.addEventListener("submit", async (event) => {
     photoInput.value = "";
     fillForm(data);
     setWorking(false);
-    setStatus("Saved. The field will update on refresh.", "success");
+    setEditMode(false);
+    setStatus("Saved. Your profile is up to date.", "success");
   } catch (error) {
     setWorking(false);
     setStatus(error.message, "error");
   }
 });
 
+editButton.addEventListener("click", () => {
+  if (!settingsLoaded || isWorking) return;
+  setEditMode(true, "Edit mode on. Save Profile when you are done.");
+  form.elements.namedItem("display_name")?.focus();
+});
+
 photoInput.addEventListener("change", () => {
+  if (!isEditing) return;
   const file = photoInput.files?.[0];
   pendingPhotoDataUrl = "";
   if (!file) return;
