@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-craig-copy1";
+const APP_VERSION = "20260703-nav-sections1";
 
 const fallbackTrip = {
   players: [
@@ -1134,6 +1134,8 @@ async function deleteWirePost(postId) {
 }
 
 function renderLeaderboard() {
+  if (!leaderboard) return;
+
   leaderboard.innerHTML = trip.players
     .map(
       (player, index) => `

@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260703-craig-copy1" />
+    <link rel="stylesheet" href="./styles.css?v=20260703-nav-sections1" />
   </head>
   <body>
     <header class="topbar" aria-label="808 Classic primary navigation">
@@ -43,11 +43,13 @@
       </a>
       <nav class="nav-links" aria-label="Sections">
         <a href="#wire">Wire</a>
-        <a href="#leaderboard-section">Leaderboard</a>
         <a href="#events">Schedule</a>
         <a href="#courses">Courses</a>
         <a href="#attendees">Field</a>
-        <a href="#lodging">Logistics</a>
+        <a href="#lodging">Stay</a>
+        <a href="#travel">Travel</a>
+        <a href="#sidequests">Guests</a>
+        <a href="#history">History</a>
       </nav>
       <a class="account-link" href="./settings.html" aria-label="Edit profile">
         <img src="./assets/favicon.svg" alt="" />
@@ -100,7 +102,7 @@
         <div class="wire-masthead">
           <div>
             <span>News, scores &amp; matters of record</span>
-            <h2>The 808 Wire</h2>
+            <h2>Wire</h2>
           </div>
           <p>Live-ish dispatches, match reports, rulings, photos, and other items the record will eventually regret preserving.</p>
           <span id="wireDate">Latest dispatch</span>
@@ -111,23 +113,16 @@
         <div id="wireFeed" class="wire-feed" aria-live="polite"></div>
       </section>
 
-      <section id="leaderboard-section" class="ticker" aria-label="Official leaderboard and field links">
-        <div class="ticker-heading">
-          <strong>Live Leaderboard</strong>
-        </div>
-        <div id="leaderboard" class="leaderboard"></div>
-      </section>
-
       <section id="events" class="section events">
         <div class="section-head">
-          <h2>Events & Logistics</h2>
+          <h2>Schedule</h2>
         </div>
         <div id="eventList" class="event-list"></div>
       </section>
 
       <section id="courses" class="section courses">
         <div class="section-head">
-          <h2>Course Schedule</h2>
+          <h2>Courses</h2>
         </div>
         <div class="course-tabs" role="tablist" aria-label="Course schedule">
           <button class="tab active" type="button" data-course="0" role="tab" aria-selected="true">Thursday</button>
@@ -139,25 +134,25 @@
 
       <section id="attendees" class="section attendees">
         <div class="section-head">
-          <h2>The Field</h2>
+          <h2>Field</h2>
         </div>
         <div id="attendeeGrid" class="attendee-grid"></div>
         <div class="section-head alumni-head">
-          <h2>Past Players & Alumni</h2>
+          <h2>Alumni</h2>
         </div>
         <div id="alumniGrid" class="alumni-grid"></div>
       </section>
 
       <section id="lodging" class="section lodging">
         <div class="section-head">
-          <h2>Where We Are Staying</h2>
+          <h2>Stay</h2>
         </div>
         <div id="lodgingGrid" class="lodging-grid"></div>
       </section>
 
       <section id="travel" class="section logistics">
         <div class="section-head">
-          <h2>Arrivals & Departures</h2>
+          <h2>Travel</h2>
         </div>
         <div class="table-wrap">
           <table>
@@ -227,6 +222,6 @@
       <span>All rulings final unless loudly disputed in the group chat.</span>
     </footer>
 
-    <script src="./app.js?v=20260703-craig-copy1"></script>
+    <script src="./app.js?v=20260703-nav-sections1"></script>
   </body>
 </html>
