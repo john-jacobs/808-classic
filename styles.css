@@ -101,10 +101,16 @@ main {
   text-transform: uppercase;
 }
 
-.nav-links a:hover,
 .nav-links a.active {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+@media (hover: hover) {
+  .nav-links a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .account-link {

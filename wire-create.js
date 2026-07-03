@@ -1,5 +1,5 @@
 const form = document.querySelector("#wireCreateForm");
-const APP_VERSION = "20260703-settings-save1";
+const APP_VERSION = "20260703-nav-jump1";
 const notes = document.querySelector("#wireNotes");
 const locationInput = document.querySelector("#wireLocation");
 const resultInput = document.querySelector("#wireResult");

@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-settings-save1";
+const APP_VERSION = "20260703-nav-jump1";
 
 const fallbackTrip = {
   players: [
@@ -445,6 +445,8 @@ const navSections = navLinks
     return href.startsWith("#") ? document.querySelector(href) : null;
   })
   .filter(Boolean);
+let pendingNavSectionId = "";
+let pendingNavTimer = null;
 const isWireArchivePage = document.body.dataset.page === "wire-archive";
 const countdownTarget = new Date("2026-07-16T16:00:00-07:00").getTime();
 const countdownEls = {
@@ -1360,12 +1362,39 @@ function setActiveNav(sectionId = "") {
   });
 }
 
+function topbarHeight() {
+  return document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
+}
+
 function updateActiveNav() {
-  const headerOffset = document.querySelector(".topbar").offsetHeight + 12;
+  if (pendingNavSectionId) {
+    setActiveNav(pendingNavSectionId);
+    return;
+  }
+
+  const headerOffset = topbarHeight() + 8;
   const current = navSections
     .filter((section) => section.getBoundingClientRect().top <= headerOffset)
     .at(-1);
   setActiveNav(current?.id);
+}
+
+function scrollToNavSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  pendingNavSectionId = sectionId;
+  window.clearTimeout(pendingNavTimer);
+  setActiveNav(sectionId);
+
+  const targetTop = Math.max(0, section.getBoundingClientRect().top + window.scrollY - topbarHeight() - 4);
+  window.history.pushState(null, "", `#${sectionId}`);
+  window.scrollTo({ top: targetTop, behavior: "auto" });
+
+  pendingNavTimer = window.setTimeout(() => {
+    pendingNavSectionId = "";
+    updateActiveNav();
+  }, 160);
 }
 
 async function copyText(text) {
@@ -1386,9 +1415,11 @@ async function copyText(text) {
 }
 
 navLinks.forEach((link) =>
-  link.addEventListener("click", () => {
+  link.addEventListener("click", (event) => {
     const href = link.getAttribute("href") || "";
-    if (href.startsWith("#")) setActiveNav(href.slice(1));
+    if (!href.startsWith("#")) return;
+    event.preventDefault();
+    scrollToNavSection(href.slice(1));
   }),
 );
 document.addEventListener("scroll", updateActiveNav, { passive: true });

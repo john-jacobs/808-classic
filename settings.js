@@ -2,7 +2,7 @@ const form = document.querySelector("#settingsForm");
 const statusEl = document.querySelector("#settingsStatus");
 const photoInput = document.querySelector("#profilePhotoInput");
 const photoThumb = document.querySelector("#profilePhotoThumb");
-const APP_VERSION = "20260703-settings-save1";
+const APP_VERSION = "20260703-nav-jump1";
 let pendingPhotoDataUrl = "";
 let settingsLoaded = false;
 
