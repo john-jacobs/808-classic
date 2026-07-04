@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-general1";
+const APP_VERSION = "20260703-wire-type-gates1";
 const WIRE_MAX_IMAGE_DIMENSION = 1800;
 const WIRE_IMAGE_QUALITY = 0.78;
 const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -893,7 +893,7 @@ function wireMediaCaption(item = {}, index = 0, post = {}) {
   if (present(item.original_storage_path) && present(mediaCaptions[item.original_storage_path])) {
     return mediaCaptions[item.original_storage_path];
   }
-  const scores = post.metadata?.scorecard || [];
+  const scores = wireDisplayScoreRows(post.metadata || {});
   if (index === 0 && scores.length >= 2) {
     return `Final card · ${scores[0].name.split(" ")[0]} ${scores[0].total}, ${scores[1].name.split(" ")[0]} ${scores[1].total}`;
   }
@@ -930,6 +930,8 @@ function renderWireScoreSummary(scores = []) {
   `;
 }
 
+const WIRE_SCOREBOARD_KINDS = new Set(["match_report", "practice_report", "score_update"]);
+
 function wireStorySubject(metadata = {}) {
   return firstPresent(metadata.subject, metadata.course);
 }
@@ -948,6 +950,16 @@ function wireScoreDetail(score = {}) {
   if (present(score.back)) parts.push(`In ${score.back}`);
   if (present(score.to_par)) parts.push(score.to_par);
   return parts.join(" · ");
+}
+
+function wireHasScoreValue(score = {}) {
+  return present(score.total) || present(score.front) || present(score.back) || present(score.to_par);
+}
+
+function wireDisplayScoreRows(metadata = {}) {
+  const kind = metadata.kind || "";
+  if (!WIRE_SCOREBOARD_KINDS.has(kind)) return [];
+  return (Array.isArray(metadata.scorecard) ? metadata.scorecard : []).filter(wireHasScoreValue);
 }
 
 function renderWire() {
@@ -977,7 +989,7 @@ function renderWireCard(post, index, featured = false) {
   const metadata = post.metadata || {};
   const media = sortedWireMedia(post);
   const image = media[0]?.storage_path;
-  const scores = metadata.scorecard || [];
+  const scores = wireDisplayScoreRows(metadata);
   const published = formatWireDate(post.published_at || post.created_at);
   const label = wirePostLabel(post);
 
@@ -1013,7 +1025,7 @@ function renderWireArchiveItem(post, index) {
   const metadata = post.metadata || {};
   const media = sortedWireMedia(post);
   const image = media[0]?.storage_path;
-  const scores = metadata.scorecard || [];
+  const scores = wireDisplayScoreRows(metadata);
   const published = formatWireDate(post.published_at || post.created_at);
 
   return `
@@ -1086,7 +1098,7 @@ function renderWireStory(post) {
   const media = sortedWireMedia(post);
   const featureImage = media[0]?.storage_path;
   const supportingMedia = media.slice(1);
-  const scores = metadata.scorecard || [];
+  const scores = wireDisplayScoreRows(metadata);
   const subject = wireStorySubject(metadata);
   const contextNote = wireStoryContextNote(metadata);
   const facts = Array.isArray(metadata.facts) ? metadata.facts.filter((fact) => present(fact.label) && present(fact.value)) : [];
@@ -1132,13 +1144,6 @@ function renderWireStory(post) {
                 )
                 .join("")}
             </div>`
-          : metadata.result?.summary
-            ? `<div class="wire-result wire-result-general" aria-label="Outcome summary">
-                <div class="wire-result-title"><span>${escapeHtml(wireResultLabel(metadata))}</span><strong>${escapeHtml(subject)}</strong></div>
-                <div class="wire-score">
-                  <span>${escapeHtml(metadata.result.summary)}</span>
-                </div>
-              </div>`
           : ""
       }
 
