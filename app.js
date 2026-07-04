@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260703-wire-type-gates1";
+const APP_VERSION = "20260703-wire-data-cleanup1";
 const WIRE_MAX_IMAGE_DIMENSION = 1800;
 const WIRE_IMAGE_QUALITY = 0.78;
 const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -921,7 +921,7 @@ function renderWireScoreSummary(scores = []) {
           (score, index) => `
             <span class="${index === 0 ? "winner" : ""}">
               <strong>${escapeHtml(score.name)}</strong>
-              <b>${escapeHtml(score.total)}</b>
+              <b>${escapeHtml(wireScoreDisplay(score))}</b>
             </span>
           `,
         )
@@ -948,12 +948,16 @@ function wireScoreDetail(score = {}) {
   const parts = [];
   if (present(score.front)) parts.push(`Out ${score.front}`);
   if (present(score.back)) parts.push(`In ${score.back}`);
-  if (present(score.to_par)) parts.push(score.to_par);
+  if (present(score.total) && present(score.to_par)) parts.push(score.to_par);
   return parts.join(" · ");
 }
 
 function wireHasScoreValue(score = {}) {
   return present(score.total) || present(score.front) || present(score.back) || present(score.to_par);
+}
+
+function wireScoreDisplay(score = {}) {
+  return firstPresent(score.total, score.to_par);
 }
 
 function wireDisplayScoreRows(metadata = {}) {
@@ -1138,7 +1142,7 @@ function renderWireStory(post) {
                     <div class="wire-score ${index === 0 ? "winner" : ""}">
                       <span>${escapeHtml(score.name)}</span>
                       ${wireScoreDetail(score) ? `<small>${escapeHtml(wireScoreDetail(score))}</small>` : ""}
-                      <strong>${escapeHtml(score.total)}</strong>
+                      <strong>${escapeHtml(wireScoreDisplay(score))}</strong>
                     </div>
                   `,
                 )
