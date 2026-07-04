@@ -42,7 +42,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: clamp(10px, 1.4vw, 22px);
   min-height: 74px;
   padding: 12px clamp(18px, 4vw, 56px);
   color: #fff;
@@ -59,7 +59,8 @@ main {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 230px;
+  min-width: 176px;
+  flex: 0 0 auto;
 }
 
 .brand-mark {
@@ -79,26 +80,26 @@ main {
 }
 
 .brand small {
-  margin-top: 2px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.74rem;
-  text-transform: uppercase;
+  display: none;
 }
 
 .nav-links {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: clamp(3px, 0.5vw, 6px);
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .nav-links a {
-  padding: 10px 12px;
+  padding: 10px clamp(6px, 0.85vw, 12px);
   color: rgba(255, 255, 255, 0.82);
-  font-size: 0.86rem;
+  font-size: clamp(0.68rem, 0.72vw, 0.86rem);
   font-weight: 800;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .nav-links a.active {
@@ -223,6 +224,29 @@ main {
 .admin-link:focus-visible,
 .admin-link.active {
   background: var(--orange);
+}
+
+@media (max-width: 1440px) {
+  .account-link {
+    grid-template-columns: 34px;
+    flex: 0 0 auto;
+    padding: 3px;
+  }
+
+  .account-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .admin-link.visible,
+  .admin-link.active {
+    flex: 0 0 auto;
+    padding-inline: 10px;
+  }
 }
 
 .hero {
