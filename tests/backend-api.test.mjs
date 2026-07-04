@@ -5,6 +5,7 @@ import { onRequestGet as health } from "../functions/api/health.js";
 import { onRequestGet as tournament } from "../functions/api/tournament.js";
 import { onRequestGet as feed } from "../functions/api/feed.js";
 import { onRequestPost as createPost } from "../functions/api/posts.js";
+import { onRequestPost as createWireDraft } from "../functions/api/wire-drafts.js";
 import { supabaseRequest } from "../functions/_lib/supabase.js";
 
 const env = {
@@ -170,4 +171,85 @@ test("feed endpoint returns editorial fields and match metadata", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.posts[0].headline, "Chuck Turns Back Arnaud");
   assert.equal(body.posts[0].metadata.result.margin, 9);
+});
+
+test("wire draft generation sends full website context and all Wire posts to OpenAI", async () => {
+  let openAiPayload;
+  let postQuery = "";
+  const allPosts = Array.from({ length: 7 }, (_, index) => ({
+    id: `post-${index + 1}`,
+    type: "dispatch",
+    headline: `Wire post ${index + 1}`,
+    dek: `Dek ${index + 1}`,
+    body: `Body ${index + 1}`,
+    metadata: { kind: "dispatch" },
+    created_at: `2026-06-${String(index + 1).padStart(2, "0")}T12:00:00Z`,
+  }));
+
+  globalThis.fetch = async (url, options = {}) => {
+    const href = String(url);
+    if (href === "https://api.openai.com/v1/responses") {
+      openAiPayload = JSON.parse(options.body);
+      return Response.json({
+        output_text: JSON.stringify({
+          headline: "Draft headline",
+          dek: "Draft dek",
+          body: "Draft body",
+          location: "Seattle",
+          metadata: {
+            kind: "dispatch",
+            subject: "Context check",
+            context_note: "",
+            result: null,
+            entities: [],
+            scorecard: [],
+            facts: [],
+          },
+          media_captions: [],
+        }),
+      });
+    }
+    if (href.includes("/members?")) {
+      return Response.json([{ id: "member-1", email: "john@example.com", display_name: "John", avatar_url: null }]);
+    }
+    if (href.includes("/group_memberships?")) return Response.json([{ role: "owner" }]);
+    if (href.includes("/trips?")) return Response.json([{ id: "trip-1", name: "808 Classic 2026" }]);
+    if (href.includes("/people?")) return Response.json([{ slug: "john", display_name: "John Jacobs", active: true }]);
+    if (href.includes("/tournament_participants?")) {
+      return Response.json([{ participant_type: "player", person: { slug: "john", display_name: "John Jacobs" } }]);
+    }
+    if (href.includes("/content_sections?")) return Response.json([{ section_key: "hero", title: "Hero", body: "Welcome copy" }]);
+    if (href.includes("/lodging_options?")) return Response.json([{ name: "Ravenna House", detail: "Lodging detail" }]);
+    if (href.includes("/tournament_courses?")) {
+      return Response.json([{ day_label: "Friday", course: { name: "Jackson Park", description: "Course detail" } }]);
+    }
+    if (href.includes("/itinerary_events?")) return Response.json([{ title: "Opening round", blurb: "Event detail" }]);
+    if (href.includes("/posts?")) {
+      postQuery = href;
+      return Response.json(allPosts);
+    }
+    return new Response("Not found", { status: 404 });
+  };
+
+  const response = await createWireDraft({
+    request: accessRequest("https://example.com/api/wire-drafts", {
+      method: "POST",
+      body: JSON.stringify({ notes: "Write a dispatch that needs prior context." }),
+    }),
+    env: { ...env, OPENAI_API_KEY: "test-key" },
+  });
+  const body = await response.json();
+
+  const prompt = JSON.parse(openAiPayload.input[1].content.find((part) => part.type === "input_text").text);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.draft.headline, "Draft headline");
+  assert.equal(prompt.app_context.site_copy[0].body, "Welcome copy");
+  assert.equal(prompt.app_context.lodging[0].name, "Ravenna House");
+  assert.equal(prompt.app_context.courses[0].course.name, "Jackson Park");
+  assert.equal(prompt.app_context.events[0].title, "Opening round");
+  assert.equal(prompt.app_context.wire_posts.length, 7);
+  assert.equal(prompt.app_context.wire_posts[6].headline, "Wire post 7");
+  assert.equal(prompt.app_context.recent_posts, undefined);
+  assert.equal(postQuery.includes("limit=5"), false);
 });

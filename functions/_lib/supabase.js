@@ -10,7 +10,6 @@ export async function supabaseRequest(env, path, options = {}) {
 
   const headers = new Headers(options.headers || {});
   headers.set("apikey", env.SUPABASE_SECRET_KEY);
-  headers.set("authorization", `Bearer ${env.SUPABASE_SECRET_KEY}`);
   if (!env.SUPABASE_SECRET_KEY.startsWith("sb_secret_")) {
     headers.set("authorization", `Bearer ${env.SUPABASE_SECRET_KEY}`);
   }

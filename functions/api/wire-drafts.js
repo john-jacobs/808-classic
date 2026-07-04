@@ -6,6 +6,42 @@ import { supabaseRequest } from "../_lib/supabase.js";
 const MAX_IMAGES = 6;
 const MAX_IMAGE_CHARS = 4_500_000;
 
+const sitePersonSelect = [
+  "slug",
+  "display_name",
+  "title",
+  "city",
+  "height",
+  "handicap",
+  "odds",
+  "classic_record",
+  "bio",
+  "quote",
+  "strength",
+  "weakness",
+  "headshot_url",
+  "action_photo_url",
+  "person_type",
+  "sort_order",
+  "active",
+].join(",");
+
+const wirePostSelect = [
+  "id",
+  "type",
+  "headline",
+  "dek",
+  "body",
+  "byline",
+  "location",
+  "published_at",
+  "created_at",
+  "metadata",
+  "pinned",
+  "author:members!posts_author_id_fkey(display_name)",
+  "media:post_media(storage_path,mime_type,width,height,sort_order)",
+].join(",");
+
 const ARTICLE_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -164,24 +200,66 @@ function parseMaybeJson(text) {
 
 async function maybeFetchContext(env) {
   try {
-    const [people, courses, posts] = await Promise.all([
+    const tripId = env.SUPABASE_TRIP_ID;
+    const [tripRows, people, participants, siteCopy, lodging, courses, events, posts] = await Promise.all([
       supabaseRequest(
         env,
-        `/rest/v1/people?group_id=eq.${env.SUPABASE_GROUP_ID}&active=eq.true&select=display_name,title,city,bio,quote,strength,weakness,person_type,tournament_participants!inner(participant_type,handicap,odds,classic_record,leaderboard_score,detail)&tournament_participants.trip_id=eq.${env.SUPABASE_TRIP_ID}&order=sort_order.asc`,
+        `/rest/v1/trips?id=eq.${tripId}&select=id,year,name,city,starts_on,ends_on,status,tagline,hero_image_url,settings&limit=1`,
       ),
       supabaseRequest(
         env,
-        `/rest/v1/tournament_courses?trip_id=eq.${env.SUPABASE_TRIP_ID}&active=eq.true&select=day_label,tee_time_notes,courses(name,address,description)&order=sort_order.asc`,
+        `/rest/v1/people?group_id=eq.${env.SUPABASE_GROUP_ID}&select=${sitePersonSelect}&order=sort_order.asc`,
       ),
       supabaseRequest(
         env,
-        `/rest/v1/posts?trip_id=eq.${env.SUPABASE_TRIP_ID}&select=headline,dek,body,metadata,created_at&order=created_at.desc&limit=5`,
+        `/rest/v1/tournament_participants?trip_id=eq.${tripId}&select=participant_type,rank,leaderboard_score,arrival,departure,odds,handicap,classic_record,notes,role_label,detail,image_url,image_fit,sort_order,active,person:people(slug,display_name)&order=sort_order.asc`,
+      ),
+      supabaseRequest(
+        env,
+        `/rest/v1/content_sections?trip_id=eq.${tripId}&select=section_key,title,body,visible,sort_order,config&order=sort_order.asc`,
+      ),
+      supabaseRequest(
+        env,
+        `/rest/v1/lodging_options?trip_id=eq.${tripId}&select=name,address,image_url,detail,booking_url,map_url,check_in,check_out,beds,total,per_person,transit,sort_order,active&order=sort_order.asc`,
+      ),
+      supabaseRequest(
+        env,
+        `/rest/v1/tournament_courses?trip_id=eq.${tripId}&select=day_label,booking_status,tee_time_notes,sort_order,active,course:courses(name,phone,address,image_url,description,website_url,map_url)&order=sort_order.asc`,
+      ),
+      supabaseRequest(
+        env,
+        `/rest/v1/itinerary_events?trip_id=eq.${tripId}&select=date_label,title,time_label,place,address,blurb,link_url,link_label,sort_order,active&order=sort_order.asc`,
+      ),
+      supabaseRequest(
+        env,
+        `/rest/v1/posts?trip_id=eq.${tripId}&select=${encodeURIComponent(wirePostSelect)}&order=created_at.asc`,
       ),
     ]);
-    return { people, courses, recent_posts: posts };
+    return {
+      context_scope:
+        "Full current 808 Classic website content snapshot for draft continuity. Includes all Wire posts available for this trip, not just recent posts.",
+      tournament: tripRows?.[0] || {},
+      site_copy: siteCopy,
+      people,
+      participants,
+      lodging,
+      courses,
+      events,
+      wire_posts: posts,
+    };
   } catch (error) {
     console.warn("Wire draft context lookup failed.", error);
-    return { people: [], courses: [], recent_posts: [] };
+    return {
+      context_scope: "Context lookup failed; only the submitted raw material is available.",
+      tournament: {},
+      site_copy: [],
+      people: [],
+      participants: [],
+      lodging: [],
+      courses: [],
+      events: [],
+      wire_posts: [],
+    };
   }
 }
 
@@ -227,7 +305,7 @@ async function generateWireDraft(env, input, member, contextData) {
           metadata_rules:
             "Use metadata.subject and metadata.context_note for general story context. Do not force a golf course into metadata.subject or metadata.context_note unless the submission is actually course-centered. Use metadata.result only when there is a real outcome, decision, final score, or status update; otherwise set it to null. Use metadata.entities only for people, groups, places, objects, or named story elements worth identifying outside the body; otherwise use an empty array. Use metadata.scorecard only for actual score rows with score values, never for people/status lists; otherwise use an empty array. Use metadata.facts for compact supporting details that are true from the notes.",
           output_rules:
-            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over. Do not imitate bureaucratic wording from prior posts or site copy; use prior posts for facts and continuity only.",
+            "Return only the requested JSON shape. Use blank lines between article paragraphs. Keep body under 5000 characters. Do not default to match_report. Let the notes determine the story and metadata.kind. Generate useful media_captions by image index. For non-scorecard photos, captions should identify the image without letting the photo overtake the article. If previous_draft and revision_notes are provided, revise the previous draft instead of starting over. Use app_context as the complete website context for factual continuity, names, schedule, roster, course, lodging, event, and prior Wire-post awareness. Do not repeat or contradict prior Wire posts unless the submitted notes update them. Do not imitate bureaucratic wording from prior posts or site copy; use prior posts for facts and continuity only.",
         },
         null,
         2,
