@@ -1,7 +1,7 @@
 const CMS_ENDPOINT = "/api/tournament";
 const FEED_ENDPOINT = "/api/feed";
 const CURRENT_CLASSIC_YEAR = "2026";
-const APP_VERSION = "20260714-live-scoring1";
+const APP_VERSION = "20260714-leaderboard1";
 const WIRE_MAX_IMAGE_DIMENSION = 1800;
 const WIRE_IMAGE_QUALITY = 0.78;
 const WIRE_MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -969,6 +969,7 @@ function wireDisplayScoreRows(metadata = {}) {
 function renderWire() {
   const posts = sortedWirePosts();
   const featured = posts[0];
+  const previousPosts = posts.slice(1, 4);
   const allPostsCount = posts.length;
 
   if (!featured) {
@@ -982,11 +983,36 @@ function renderWire() {
   wireFeed.innerHTML = `
     <div class="wire-desk solo">
       ${renderWireCard(featured, 0, true)}
-      ${allPostsCount ? `<a class="wire-archive-link" href="./wire.html">All wires <span>${allPostsCount}</span></a>` : ""}
+      ${renderWireMore(previousPosts, allPostsCount)}
     </div>
   `;
 
   renderWireArchive(posts);
+}
+
+function renderWireMore(posts = [], allPostsCount = 0) {
+  if (!posts.length && !allPostsCount) return "";
+
+  return `
+    <div class="wire-more" aria-label="Previous 808 Wire dispatches">
+      ${
+        posts.length
+          ? `<div class="wire-more-list">
+              ${posts
+                .map(
+                  (post) => `
+                    <a class="wire-more-item" href="${escapeHtml(wirePostUrl(post))}">
+                      <span>${escapeHtml(post.headline || "Untitled dispatch")}</span>
+                    </a>
+                  `,
+                )
+                .join("")}
+            </div>`
+          : ""
+      }
+      <a class="wire-archive-link" href="./wire.html">All wires <span>${allPostsCount}</span></a>
+    </div>
+  `;
 }
 
 function renderWireCard(post, index, featured = false) {
