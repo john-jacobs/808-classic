@@ -35,7 +35,7 @@ async function loadPlayers(env) {
   const [participantRows, linkRows] = await Promise.all([
     supabaseRequest(
       env,
-      `/rest/v1/tournament_participants?trip_id=eq.${env.SUPABASE_TRIP_ID}&participant_type=neq.guest&active=eq.true&select=person_id,sort_order&order=sort_order`,
+      `/rest/v1/tournament_participants?trip_id=eq.${env.SUPABASE_TRIP_ID}&participant_type=eq.current_player&attendance_status=eq.confirmed&active=eq.true&select=person_id,sort_order&order=sort_order`,
     ),
     supabaseRequest(
       env,
