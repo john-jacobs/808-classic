@@ -6,10 +6,10 @@
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="pragma" content="no-cache" />
     <meta http-equiv="expires" content="0" />
-    <title>Admin | 808 Classic</title>
-    <meta name="description" content="Admin content editor for the 808 Classic." />
+    <title>Live Scoring | 808 Classic</title>
+    <meta name="description" content="Live scoring, points, teams, drinks, and mulligans for the 808 Classic." />
     <meta name="theme-color" content="#ff5f05" />
-    <link rel="canonical" href="https://808classic.com/admin.html" />
+    <link rel="canonical" href="https://808classic.com/scoring.html" />
     <link rel="icon" href="./assets/favicon.ico" sizes="any" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=20260714-live-scoring1" />
   </head>
-  <body class="admin-body">
+  <body class="scoring-body">
     <header class="topbar" aria-label="808 Classic primary navigation">
       <a class="brand" href="./index.html#overview" aria-label="808 Classic home">
         <span class="brand-mark">808</span>
@@ -35,11 +35,8 @@
         <a href="./index.html#courses">Courses</a>
         <a href="./index.html#attendees">Field</a>
         <a href="./index.html#lodging">Stay</a>
-        <a href="./index.html#travel">Travel</a>
-        <a href="./index.html#sidequests">Guests</a>
-        <a href="./index.html#history">History</a>
       </nav>
-      <a class="admin-link active" href="./admin.html">Admin</a>
+      <a class="admin-link" href="./admin.html">Admin</a>
       <a class="account-link" href="./settings.html" aria-label="Edit profile">
         <img src="./assets/favicon.svg" alt="" />
         <span>Profile</span>
@@ -47,41 +44,53 @@
     </header>
 
     <main>
-      <section class="section admin-section">
+      <section class="section scoring-section">
         <div class="section-head split">
-          <h2>Admin</h2>
-          <a class="section-link" href="./index.html#events">Back to Site</a>
+          <div>
+            <p class="wire-label">Classic Control</p>
+            <h2>Live Scoring</h2>
+          </div>
+          <button id="refreshScoringBtn" class="section-link" type="button">Refresh</button>
         </div>
 
-        <form id="adminContentForm" class="admin-form">
-          <div class="admin-toolbar">
-            <div>
-              <p class="wire-label">Trip Content</p>
-              <strong>Courses and Schedule</strong>
+        <p id="scoringStatus" class="admin-status scoring-status" role="status"></p>
+
+        <div id="scoringLeaderboard" class="scoring-leaderboard" aria-label="Classic points leaderboard"></div>
+
+        <div class="scoring-layout">
+          <section class="scoring-panel" aria-label="Hole score entry">
+            <div class="admin-panel-head">
+              <h3>Score Entry</h3>
+              <span id="scoreEntryMeta"></span>
             </div>
-            <button type="submit">Save Changes</button>
+            <div id="roundTabs" class="round-tabs"></div>
+            <div id="scoreEntry" class="score-entry"></div>
+          </section>
+
+          <section class="scoring-panel" aria-label="Drinks and mulligans">
+            <div class="admin-panel-head">
+              <h3>Drinks</h3>
+              <span>Consumed / Mulligans</span>
+            </div>
+            <div id="drinkCards" class="drink-grid"></div>
+          </section>
+        </div>
+
+        <section id="setupPanel" class="scoring-panel setup-panel" aria-label="Scoring setup" hidden>
+          <div class="admin-panel-head">
+            <h3>Setup</h3>
+            <button id="saveSetupBtn" type="button">Save Setup</button>
           </div>
-          <p id="adminStatus" class="admin-status" role="status"></p>
-
-          <section class="admin-panel" aria-label="Course editor">
-            <div class="admin-panel-head">
-              <h3>Courses</h3>
-              <button id="addCourseBtn" type="button">Add Course Day</button>
-            </div>
-            <div id="adminCourses" class="admin-list"></div>
-          </section>
-
-          <section class="admin-panel" aria-label="Schedule editor">
-            <div class="admin-panel-head">
-              <h3>Schedule</h3>
-              <button id="addEventBtn" type="button">Add Event</button>
-            </div>
-            <div id="adminEvents" class="admin-list"></div>
-          </section>
-        </form>
+          <div class="admin-grid">
+            <label>Points by position <input id="pointsInput" type="text" inputmode="numeric" /></label>
+            <label>Default drink allotment <input id="drinkAllotmentInput" type="number" min="0" max="200" /></label>
+          </div>
+          <div id="roundSetup" class="admin-list"></div>
+          <div id="teamSetup" class="admin-list"></div>
+        </section>
       </section>
     </main>
 
-    <script src="./admin.js?v=20260714-live-scoring1"></script>
+    <script src="./scoring.js?v=20260714-live-scoring1"></script>
   </body>
 </html>

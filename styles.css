@@ -1785,6 +1785,7 @@ h2 {
 }
 
 .admin-card input,
+.admin-card select,
 .admin-card textarea {
   width: 100%;
   color: var(--ink);
@@ -1797,9 +1798,268 @@ h2 {
 }
 
 .admin-card input:focus,
+.admin-card select:focus,
 .admin-card textarea:focus {
   border-color: var(--orange);
   outline: 2px solid rgba(255, 95, 5, 0.2);
+}
+
+.scoring-body main {
+  background: #fff;
+}
+
+.scoring-section {
+  padding-top: 54px;
+}
+
+.scoring-status {
+  width: min(1180px, calc(100% - 36px));
+  margin: -12px auto 16px;
+}
+
+.scoring-leaderboard,
+.scoring-layout,
+.scoring-panel {
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+}
+
+.scoring-leaderboard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.scoreboard-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 12px;
+  color: var(--navy);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.scoreboard-rank {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #fff;
+  background: var(--green);
+  font-weight: 900;
+}
+
+.scoreboard-row strong,
+.scoreboard-row span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scoreboard-row span:last-child {
+  color: var(--orange-dark);
+  font-weight: 900;
+}
+
+.scoring-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.scoring-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 36px rgba(16, 24, 32, 0.08);
+}
+
+.scoring-layout .scoring-panel {
+  width: 100%;
+}
+
+.scoring-panel h3 {
+  margin: 0;
+  color: var(--navy);
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.scoring-panel .admin-panel-head span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.round-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.round-tabs button,
+.setup-panel button,
+.team-setup-round button,
+#refreshScoringBtn {
+  min-height: 38px;
+  padding: 0 13px;
+  color: var(--navy);
+  background: #fff;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.round-tabs button.active,
+.setup-panel button,
+.team-setup-round button {
+  color: #fff;
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+.score-entry {
+  display: grid;
+  gap: 12px;
+}
+
+.score-entry-row {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.score-entry-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--navy);
+}
+
+.score-entry-row > div:first-child span {
+  color: var(--orange-dark);
+  font-weight: 900;
+}
+
+.hole-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(46px, 1fr));
+  gap: 6px;
+}
+
+.hole-grid label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.hole-grid input,
+.drink-card input,
+.setup-panel input,
+.setup-panel select,
+.team-setup-row input[type="text"] {
+  width: 100%;
+  min-height: 38px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  font: 800 0.92rem/1.2 Inter, system-ui, sans-serif;
+  padding: 8px;
+}
+
+.hole-grid input {
+  text-align: center;
+}
+
+.drink-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.drink-card {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) repeat(3, minmax(70px, 0.55fr));
+  align-items: end;
+  gap: 8px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.drink-card strong {
+  color: var(--navy);
+}
+
+.drink-card label {
+  display: grid;
+  gap: 5px;
+  color: var(--orange-dark);
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.setup-panel {
+  margin-top: 18px;
+}
+
+.team-setup-list {
+  display: grid;
+  gap: 12px;
+}
+
+.team-setup-row {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.team-setup-row button {
+  justify-self: start;
+}
+
+.team-member-checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-member-checks label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.team-member-checks input {
+  width: auto;
+  min-height: auto;
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .settings-head {
@@ -2723,6 +2983,35 @@ td small {
     margin-left: auto;
   }
 
+  .scoring-section {
+    padding-top: 28px;
+  }
+
+  .scoring-leaderboard,
+  .scoring-layout {
+    width: calc(100% - 32px);
+  }
+
+  .scoring-leaderboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scoring-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hole-grid {
+    grid-template-columns: repeat(6, minmax(42px, 1fr));
+  }
+
+  .drink-card {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .ticker,
   .course-panel,
   .event-day {
@@ -2950,6 +3239,18 @@ td small {
 }
 
 @media (max-width: 540px) {
+  .scoring-leaderboard {
+    grid-template-columns: 1fr;
+  }
+
+  .hole-grid {
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
+  }
+
+  .team-member-checks {
+    grid-template-columns: 1fr;
+  }
+
   .section {
     padding: 24px 0 42px;
   }
