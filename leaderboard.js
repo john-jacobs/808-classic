@@ -171,23 +171,24 @@ async function loadLeaderboard(message = "Loading leaderboard...") {
 }
 
 async function saveScore(input) {
-  setStatus("Saving score...", "working");
+  const rawValue = String(input.value || "").trim();
+  setStatus(rawValue ? "Saving score..." : "Removing score...", "working");
   state = await requestJson(API_ENDPOINT, {
     method: "PATCH",
     body: JSON.stringify({
       round_id: state.round.id,
       member_id: input.dataset.memberId,
       hole_number: Number(input.dataset.hole),
-      strokes: Number(input.value),
+      strokes: rawValue ? Number(rawValue) : null,
     }),
   });
   render();
-  setStatus("Saved.", "success");
+  setStatus(rawValue ? "Saved." : "Removed.", "success");
 }
 
 cardsEl.addEventListener("change", (event) => {
   const input = event.target.closest("[data-score-input]");
-  if (!input || !input.value) return;
+  if (!input) return;
   saveScore(input).catch((error) => setStatus(error.message, "error"));
 });
 

@@ -105,16 +105,29 @@ export const onRequestPatch = withApiErrors(async (context) => {
   const roundId = cleanString(input.round_id, 80);
   const memberId = cleanString(input.member_id, 80);
   const holeNumber = cleanInteger(input.hole_number, 0, 1, 9);
-  const strokes = cleanInteger(input.strokes, 0, 1, 20);
+  const shouldDelete = input.strokes === null || input.strokes === "";
+  const strokes = shouldDelete ? null : cleanInteger(input.strokes, 0, 1, 20);
 
   if (!roundId || !memberId) return apiError(400, "round_id and member_id are required");
-  if (!holeNumber || !strokes) return apiError(400, "Valid hole number and strokes are required");
+  if (!holeNumber || (!shouldDelete && !strokes)) return apiError(400, "Valid hole number and strokes are required");
 
   const roundRows = await supabaseRequest(
     context.env,
     `/rest/v1/rounds?trip_id=eq.${context.env.SUPABASE_TRIP_ID}&id=eq.${roundId}&select=id&limit=1`,
   );
   if (!roundRows?.length) return apiError(404, "Day 1 round was not found");
+
+  if (shouldDelete) {
+    await supabaseRequest(
+      context.env,
+      `/rest/v1/hole_scores?round_id=eq.${roundId}&member_id=eq.${memberId}&hole_number=eq.${holeNumber}`,
+      {
+        method: "DELETE",
+        headers: { prefer: "return=minimal" },
+      },
+    );
+    return loadLeaderboard(context.env, member);
+  }
 
   await supabaseRequest(context.env, "/rest/v1/hole_scores?on_conflict=round_id,member_id,hole_number", {
     method: "POST",
